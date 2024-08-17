@@ -6,6 +6,25 @@
     <title>Casino Online - BOOM BET</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const slideContainer = document.querySelector('.carousel-slide');
+            const slides = document.querySelectorAll('.carousel-slide img');
+    
+            let counter = 0;
+            const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
+
+            function moveSlide() {
+                counter++;
+                if (counter >= slides.length / 4) {
+                    counter = 0; // Vuelve al inicio cuando llegue al final
+                }
+                slideContainer.style.transform = 'translateX(' + (-size * counter) + 'px)';
+            }
+
+            setInterval(moveSlide, 5000); // Cambia cada 5 segundos
+        });
+    </script>
 </head>
 <body>
     <header>
@@ -33,14 +52,21 @@
         <a href="https://Bet91.club" class="btn" style="background-color: #ffcc00; color: #000;">Ir al Casino</a>
     </section>
 
-    <section class="gallery">
+    <section class="gallery-carousel">
         <h2>Pagos y Ganancias</h2>
         <p>Mira algunos de los pagos y ganancias recientes de nuestros usuarios:</p>
-        <div class="gallery-images">
-            <img src="images/pago1.jpg" alt="Pago 1">
-            <img src="images/pago2.jpg" alt="Pago 2">
-            <img src="images/pago3.jpg" alt="Pago 3">
-            <img src="images/pago4.jpg" alt="Pago 4">
+        <div class="carousel-container">
+            <div class="carousel-slide">
+                <img src="images/pago1.jpg" alt="Pago 1">
+                <img src="images/pago2.jpg" alt="Pago 2">
+                <img src="images/pago3.jpg" alt="Pago 3">
+                <img src="images/pago4.jpg" alt="Pago 4">
+                <img src="images/pago5.jpg" alt="Pago 5">
+                <img src="images/pago6.jpg" alt="Pago 6">
+                <img src="images/pago7.jpg" alt="Pago 7">
+                <img src="images/pago8.jpg" alt="Pago 8">
+                <!-- Puedes agregar más imágenes si es necesario -->
+            </div>
         </div>
     </section>
 
