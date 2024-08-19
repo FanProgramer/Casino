@@ -17,7 +17,7 @@
 
             function moveSlide() {
                 counter++;
-                if (counter >= slides.length / 4) {
+                if (counter >= Math.ceil(slides.length / 4)) {
                     counter = 0; // Vuelve al inicio cuando llegue al final
                 }
                 slideContainer.style.transform = 'translateX(' + (-size * counter) + 'px)';
@@ -108,7 +108,7 @@
             }).then(response => response.json())
               .then(data => {
                   if (data.message === 'Comment saved successfully') {
-                      alert('Gracias por tu comentario!');
+                      alert('¡Gracias por tu comentario!');
                       form.reset();
                       loadComments(); // Cargar comentarios después de guardar
                   } else {
@@ -156,7 +156,7 @@
             ✓ Retiros ilimitados<br><br>
         
             SISTEMA DE BANCA LIBRE.<br><br>
-            Somos tu mejor opción!! 🤩
+            ¡Somos tu mejor opción! 🤩
         </p>
         <a href="https://Bet91.club" class="btn" style="background-color: #ffcc00; color: #000;">Ir al Casino</a>
     </section>
@@ -194,24 +194,25 @@
     </section>
 
     <!-- Sección de inicio de sesión y comentarios -->
-<section class="comments">
-    <h2>Deja tu comentario</h2>
-    <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
-    <div id="commentSection" style="display: none;">
-        <!-- Formulario para enviar comentarios -->
-        <form name="commentForm" method="POST" data-netlify="true">
-            <input type="hidden" name="form-name" value="commentForm" />
-            <p>Escribe tu reseña, <span id="userName"></span>:</p>
-            <textarea name="userComment" id="userComment" placeholder="Escribe tu comentario aquí..." required></textarea>
-            <button type="submit">Enviar</button>
-        </form>
-    </div>
-    <div id="commentsDisplay">
-        <!-- Aquí se mostrarán los comentarios -->
-    </div>
-</section>
+    <section class="comments">
+        <h2>Deja tu comentario</h2>
+        <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
+        <div id="commentSection" style="display: none;">
+            <!-- Formulario para enviar comentarios -->
+            <form name="commentForm" method="POST" data-netlify="true" onsubmit="submitComment(event)">
+                <input type="hidden" name="form-name" value="commentForm" />
+                <label for="userComment">Tu Comentario:</label>
+                <textarea id="userComment" name="userComment" rows="4" required></textarea>
+                <button type="submit">Enviar Comentario</button>
+            </form>
+            <div id="commentsDisplay">
+                <!-- Comentarios serán cargados aquí -->
+            </div>
+        </div>
+    </section>
 
-<footer>
-    <p>&copy; 2024 BOOM BET. Todos los derechos reservados.</p>
-</footer>
-
+    <footer>
+        <p>&copy; 2024 Boom Bet. Todos los derechos reservados.</p>
+    </footer>
+</body>
+</html>
