@@ -6,6 +6,7 @@
     <title>Casino Online - BOOM BET</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const slideContainer = document.querySelector('.carousel-slide');
@@ -25,12 +26,68 @@
             setInterval(moveSlide, 5000); // Cambia cada 5 segundos
         });
     </script>
+    
+    <!-- Facebook SDK -->
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
+    <script>
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId      : '499168329477257',  // Reemplaza con tu App ID
+                cookie     : true,
+                xfbml      : true,
+                version    : 'v17.0'
+            });
+            FB.AppEvents.logPageView();   
+        };
+
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        function loginWithFacebook() {
+            FB.login(function(response) {
+                if (response.authResponse) {
+                    FB.api('/me', { fields: 'name, email' }, function(response) {
+                        console.log('Bienvenido, ' + response.name + '.');
+                        document.getElementById('userName').innerText = response.name;
+                        document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+                    });
+                } else {
+                    console.log('Usuario canceló el login o no autorizó.');
+                }
+            }, {scope: 'public_profile,email'});
+        }
+
+        function submitComment() {
+            const comment = document.getElementById('userComment').value;
+            const userName = document.getElementById('userName').innerText;
+            
+            if (comment) {
+                // Aquí podrías enviar el comentario a tu servidor o almacenarlo
+                alert('Gracias por tu comentario, ' + userName + '!');
+
+                // Opcional: Muestra el comentario en la página
+                const commentDisplay = document.createElement('p');
+                commentDisplay.innerText = userName + ': ' + comment;
+                document.getElementById('commentsDisplay').appendChild(commentDisplay);
+                
+                // Limpia el textarea
+                document.getElementById('userComment').value = '';
+            } else {
+                alert('Por favor escribe un comentario antes de enviarlo.');
+            }
+        }
+    </script>
 </head>
 <body>
     <header>
         <h1>Bienvenido a Boom Bet</h1>
         <h3>Casino Online 24hs.</h3>
-        <p>Sitio de entretenimiento donde vas a poder apostar, ganar y retirar las veces que desees, Ya que contamos con un sistema de banca libre.</p>
+        <p>Sitio de entretenimiento donde vas a poder apostar, ganar y retirar las veces que desees, ya que contamos con un sistema de banca libre.</p>
         <img src="images/casino-banner.jpg" alt="Casino Banner">
     </header>
 
@@ -83,6 +140,20 @@
         <h2>Comparte Nuestra Página</h2>
         <a href="https://www.facebook.com/sharer/sharer.php?u=https://tu-pagina.com" class="btn facebook">Compartir en Facebook</a>
         <a href="https://twitter.com/intent/tweet?url=https://tu-pagina.com&text=Echa%20un%20vistazo%20a%20este%20casino%20online!" class="btn twitter">Compartir en Twitter</a>
+    </section>
+
+    <!-- Sección de inicio de sesión y comentarios -->
+    <section class="comments">
+        <h2>Deja tu comentario</h2>
+        <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
+        <div id="commentSection" style="display: none;">
+            <p>Escribe tu reseña, <span id="userName"></span>:</p>
+            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
+            <button onclick="submitComment()">Enviar</button>
+        </div>
+        <div id="commentsDisplay">
+            <!-- Aquí se mostrarán los comentarios -->
+        </div>
     </section>
 
     <footer>
