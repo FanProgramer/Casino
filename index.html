@@ -25,11 +25,32 @@
 
             setInterval(moveSlide, 5000); // Cambia cada 5 segundos
         });
-    </script>
-    
-    <!-- Facebook SDK -->
-    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
-    <script>
+
+        // Verificar si el usuario ya ha iniciado sesión
+        function checkLoginState() {
+            const accessToken = localStorage.getItem('fbAccessToken');
+            const userID = localStorage.getItem('fbUserID');
+
+            if (accessToken) {
+                FB.getLoginStatus(function(response) {
+                    if (response.status === 'connected' && response.authResponse.userID === userID) {
+                        console.log('El usuario ya ha iniciado sesión.');
+                        FB.api('/me', { fields: 'name, email' }, function(response) {
+                            document.getElementById('userName').innerText = response.name;
+                            document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+                        });
+                    } else {
+                        console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
+                        localStorage.removeItem('fbAccessToken');
+                        localStorage.removeItem('fbUserID');
+                    }
+                });
+            } else {
+                console.log('El usuario no ha iniciado sesión.');
+            }
+        }
+
+        // Facebook SDK
         window.fbAsyncInit = function() {
             FB.init({
                 appId      : '499168329477257',  // Reemplaza con tu App ID
@@ -38,6 +59,7 @@
                 version    : 'v17.0'
             });
             FB.AppEvents.logPageView();   
+            checkLoginState();  // Verificar el estado de la sesión al cargar la página
         };
 
         (function(d, s, id){
@@ -51,6 +73,13 @@
         function loginWithFacebook() {
             FB.login(function(response) {
                 if (response.authResponse) {
+                    const accessToken = response.authResponse.accessToken;
+                    const userID = response.authResponse.userID;
+
+                    // Guarda el token en el almacenamiento local
+                    localStorage.setItem('fbAccessToken', accessToken);
+                    localStorage.setItem('fbUserID', userID);
+
                     FB.api('/me', { fields: 'name, email' }, function(response) {
                         console.log('Bienvenido, ' + response.name + '.');
                         document.getElementById('userName').innerText = response.name;
