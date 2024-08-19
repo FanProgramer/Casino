@@ -1,4 +1,4 @@
-// netlify/functions/save-comment.js
+// functions/save-comment.js
 const fs = require('fs');
 const path = require('path');
 
@@ -28,7 +28,7 @@ exports.handler = async (event) => {
         } catch (error) {
             return {
                 statusCode: 500,
-                body: JSON.stringify({ message: 'Internal server error' })
+                body: JSON.stringify({ error: 'Internal server error' })
             };
         }
     }
@@ -38,4 +38,3 @@ exports.handler = async (event) => {
         body: JSON.stringify({ message: 'Method Not Allowed' })
     };
 };
-
