@@ -91,25 +91,47 @@
             }, {scope: 'public_profile,email'});
         }
 
-        function submitComment() {
-            const comment = document.getElementById('userComment').value;
-            const userName = document.getElementById('userName').innerText;
-            
-            if (comment) {
-                // Aquí podrías enviar el comentario a tu servidor o almacenarlo
-                alert('Gracias por tu comentario, ' + userName + '!');
+        function submitComment(event) {
+            event.preventDefault(); // Evita el envío del formulario por defecto
 
-                // Opcional: Muestra el comentario en la página
-                const commentDisplay = document.createElement('p');
-                commentDisplay.innerText = userName + ': ' + comment;
-                document.getElementById('commentsDisplay').appendChild(commentDisplay);
-                
-                // Limpia el textarea
-                document.getElementById('userComment').value = '';
-            } else {
-                alert('Por favor escribe un comentario antes de enviarlo.');
-            }
+            const form = document.querySelector('form[name="commentForm"]');
+            const formData = new FormData(form);
+            fetch('/.netlify/functions/save-comment', {
+                method: 'POST',
+                body: JSON.stringify({
+                    userComment: formData.get('userComment'),
+                    userName: document.getElementById('userName').innerText
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json())
+              .then(data => {
+                  if (data.message === 'Comment saved successfully') {
+                      alert('Gracias por tu comentario!');
+                      form.reset();
+                      loadComments(); // Cargar comentarios después de guardar
+                  } else {
+                      alert('Hubo un problema al guardar tu comentario.');
+                  }
+              });
         }
+
+        function loadComments() {
+            fetch('/.netlify/functions/get-comments')
+                .then(response => response.json())
+                .then(data => {
+                    const commentsDisplay = document.getElementById('commentsDisplay');
+                    commentsDisplay.innerHTML = ''; // Limpiar comentarios existentes
+                    data.forEach(comment => {
+                        const commentDisplay = document.createElement('p');
+                        commentDisplay.innerText = comment.userName + ': ' + comment.userComment;
+                        commentsDisplay.appendChild(commentDisplay);
+                    });
+                });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadComments); // Cargar comentarios al cargar la página
     </script>
 </head>
 <body>
@@ -172,21 +194,24 @@
     </section>
 
     <!-- Sección de inicio de sesión y comentarios -->
-    <section class="comments">
-        <h2>Deja tu comentario</h2>
-        <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
-        <div id="commentSection" style="display: none;">
+<section class="comments">
+    <h2>Deja tu comentario</h2>
+    <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
+    <div id="commentSection" style="display: none;">
+        <!-- Formulario para enviar comentarios -->
+        <form name="commentForm" method="POST" data-netlify="true">
+            <input type="hidden" name="form-name" value="commentForm" />
             <p>Escribe tu reseña, <span id="userName"></span>:</p>
-            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
-            <button onclick="submitComment()">Enviar</button>
-        </div>
-        <div id="commentsDisplay">
-            <!-- Aquí se mostrarán los comentarios -->
-        </div>
-    </section>
+            <textarea name="userComment" id="userComment" placeholder="Escribe tu comentario aquí..." required></textarea>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+    <div id="commentsDisplay">
+        <!-- Aquí se mostrarán los comentarios -->
+    </div>
+</section>
 
-    <footer>
-        <p>&copy; 2024 BOOM BET. Todos los derechos reservados.</p>
-    </footer>
-</body>
-</html>
+<footer>
+    <p>&copy; 2024 BOOM BET. Todos los derechos reservados.</p>
+</footer>
+
