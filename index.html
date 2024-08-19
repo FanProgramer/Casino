@@ -99,30 +99,33 @@
 
             const form = document.querySelector('form[name="commentForm"]');
             const formData = new FormData(form);
-            fetch('/.netlify/functions/save-comment', {
+            const userName = document.getElementById('userName').innerText;
+
+            fetch('https://boom-bet.netlify.app/.netlify/functions/save-comment', {
                 method: 'POST',
                 body: JSON.stringify({
                     userComment: formData.get('userComment'),
-                    userName: document.getElementById('userName').innerText
+                    userName: userName
                 }),
                 headers: {
                     'Content-Type': 'application/json'
                 }
-            }).then(response => response.json())
-              .then(data => {
-                  if (data.message === 'Comment saved successfully') {
-                      alert('¡Gracias por tu comentario!');
-                      form.reset();
-                      loadComments(); // Cargar comentarios después de guardar
-                  } else {
-                      alert('Hubo un problema al guardar tu comentario.');
-                  }
-              })
-              .catch(error => console.error('Error al enviar el comentario:', error));
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Comment saved successfully') {
+                    alert('¡Gracias por tu comentario!');
+                    form.reset();
+                    loadComments(); // Cargar comentarios después de guardar
+                } else {
+                    alert('Hubo un problema al guardar tu comentario.');
+                }
+            })
+            .catch(error => console.error('Error al enviar el comentario:', error));
         }
 
         function loadComments() {
-            fetch('/.netlify/functions/get-comments')
+            fetch('https://boom-bet.netlify.app/.netlify/functions/get-comments')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Error en la respuesta de la red');
@@ -203,23 +206,23 @@
 
     <section class="share">
         <h2>Comparte con tus Amigos</h2>
-        <a href="https://www.facebook.com/sharer/sharer.php?u=https://tu-web.com" class="btn facebook">Compartir en Facebook</a>
-        <a href="https://twitter.com/intent/tweet?text=Descubre Boom Bet&url=https://tu-web.com" class="btn twitter">Compartir en Twitter</a>
-        <a href="https://www.instagram.com" class="btn instagram">Compartir en Instagram</a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://boom-bet.netlify.app" target="_blank" class="btn facebook">Compartir en Facebook</a>
+        <a href="https://twitter.com/intent/tweet?url=https://boom-bet.netlify.app" target="_blank" class="btn twitter">Compartir en Twitter</a>
+        <a href="https://www.instagram.com/?url=https://boom-bet.netlify.app" target="_blank" class="btn instagram">Compartir en Instagram</a>
     </section>
 
-    <section class="comments" id="commentSection">
-        <h2>Comentarios</h2>
-        <div id="userInfo">
-            <p>Hola, <span id="userName"></span></p>
-        </div>
+    <section id="commentSection" style="display: none;">
+        <h2>Deja tu Comentario</h2>
         <form name="commentForm" onsubmit="submitComment(event)">
-            <textarea name="userComment" rows="4" cols="50" placeholder="Escribe tu comentario aquí..."></textarea>
-            <button type="submit" class="btn">Enviar</button>
+            <textarea name="userComment" rows="4" cols="50" placeholder="Escribe tu comentario aquí..." required></textarea><br>
+            <button type="submit">Enviar</button>
         </form>
-        <div id="commentsDisplay">
-            <!-- Los comentarios se mostrarán aquí -->
-        </div>
+        <div id="commentsDisplay"></div>
     </section>
+
+    <footer>
+        <p>© 2024 Boom Bet. Todos los derechos reservados.</p>
+    </footer>
 </body>
 </html>
+

@@ -1,6 +1,6 @@
 // save-comment.js
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./comments.db');
+const path = require('path');
 
 exports.handler = async function(event) {
     if (event.httpMethod === 'POST') {
@@ -15,23 +15,21 @@ exports.handler = async function(event) {
                 };
             }
 
-            // Guarda el comentario en la base de datos
-            await new Promise((resolve, reject) => {
-                db.run(
-                    'INSERT INTO comments (userName, userComment) VALUES (?, ?)',
-                    [userName, userComment],
-                    function(err) {
-                        if (err) {
-                            return reject(err);
-                        }
-                        resolve();
-                    }
-                );
+            const dbPath = path.join(__dirname, 'comments.db');
+            const db = new sqlite3.Database(dbPath);
+
+            db.serialize(() => {
+                db.run("CREATE TABLE IF NOT EXISTS comments (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, comment TEXT)");
+                const stmt = db.prepare("INSERT INTO comments (name, comment) VALUES (?, ?)");
+                stmt.run(userName, userComment);
+                stmt.finalize();
             });
+
+            db.close();
 
             return {
                 statusCode: 200,
-                body: JSON.stringify({ message: 'Comment saved successfully' })
+                body: JSON.stringify({ message: 'Comentario guardado exitosamente' })
             };
         } catch (error) {
             console.error('Error al guardar comentario:', error);
