@@ -11,7 +11,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const slideContainer = document.querySelector('.carousel-slide');
             const slides = document.querySelectorAll('.carousel-slide img');
-
+    
             let counter = 0;
             const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
 
@@ -25,10 +25,11 @@
 
             setInterval(moveSlide, 5000); // Cambia cada 5 segundos
 
-            // Cargar comentarios desde el servidor
+            // Cargar comentarios desde localStorage
             loadComments();
         });
 
+        // Verificar si el usuario ya ha iniciado sesión
         function checkLoginState() {
             const accessToken = localStorage.getItem('fbAccessToken');
             const userID = localStorage.getItem('fbUserID');
@@ -52,6 +53,7 @@
             }
         }
 
+        // Facebook SDK
         window.fbAsyncInit = function() {
             FB.init({
                 appId      : '499168329477257',  // Reemplaza con tu App ID
@@ -92,57 +94,39 @@
             }, {scope: 'public_profile,email'});
         }
 
-        async function submitComment() {
+        function submitComment() {
             const comment = document.getElementById('userComment').value;
             const userName = document.getElementById('userName').innerText;
-
+            
             if (comment) {
-                try {
-                    const response = await fetch('https://your-netlify-site.netlify.app/.netlify/functions/save-comments', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ comment }),
-                    });
-
-                    if (response.ok) {
-                        console.log('Comentario guardado');
-                        loadComments(); // Actualiza los comentarios
-                        document.getElementById('userComment').value = '';
-                    } else {
-                        console.error('Error al guardar comentario');
-                    }
-                } catch (error) {
-                    console.error('Error al enviar el comentario:', error);
-                }
+                // Guardar comentario en localStorage
+                let comments = JSON.parse(localStorage.getItem('comments')) || [];
+                comments.push({ userName: userName, comment: comment });
+                localStorage.setItem('comments', JSON.stringify(comments));
+                
+                // Muestra el comentario en la página
+                displayComments();
+                
+                // Limpia el textarea
+                document.getElementById('userComment').value = '';
             } else {
                 alert('Por favor escribe un comentario antes de enviarlo.');
             }
         }
 
-        async function loadComments() {
-            try {
-                const response = await fetch('https://your-netlify-site.netlify.app/.netlify/functions/get-comments');
-                if (response.ok) {
-                    const comments = await response.json();
-                    displayComments(comments);
-                } else {
-                    console.error('Error al cargar los comentarios');
-                }
-            } catch (error) {
-                console.error('Error al cargar comentarios:', error);
-            }
-        }
-
-        function displayComments(comments) {
+        function displayComments() {
             const commentsDisplay = document.getElementById('commentsDisplay');
             commentsDisplay.innerHTML = ''; // Limpia los comentarios actuales
+            let comments = JSON.parse(localStorage.getItem('comments')) || [];
             comments.forEach(comment => {
                 const commentDisplay = document.createElement('p');
                 commentDisplay.innerText = comment.userName + ': ' + comment.comment;
                 commentsDisplay.appendChild(commentDisplay);
             });
+        }
+
+        function loadComments() {
+            displayComments(); // Cargar los comentarios cuando se carga la página
         }
     </script>
 </head>
@@ -197,17 +181,23 @@
         <a href="https://wa.link/mw2adr" class="btn whatsapp">WhatsApp</a>
         <a href="https://facebook.com/tu-pagina" class="btn facebook">Facebook</a>
         <a href="https://www.instagram.com/casino_boombet4?utm_source=qr&igsh=dmR4NjBiamhvZ2dr" class="btn instagram">Instagram</a>
-        <a href="https://twitter.com/tu-perfil" class="btn twitter">Twitter</a>
     </section>
 
-    <section id="commentSection" style="display: none;">
-        <h2>Deja tu comentario</h2>
-        <p>Hola <span id="userName"></span>, ¡Nos encantaría conocer tu opinión!</p>
-        <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
-        <button onclick="submitComment()">Enviar Comentario</button>
+    <section class="share">
+        <h2>Comparte Nuestra Página</h2>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://tu-pagina.com" class="btn facebook">Compartir en Facebook</a>
+        <a href="https://twitter.com/intent/tweet?url=https://tu-pagina.com&text=Echa%20un%20vistazo%20a%20este%20casino%20online!" class="btn twitter">Compartir en Twitter</a>
+    </section>
 
-        <div id="commentsDisplay">
-            <!-- Los comentarios se mostrarán aquí -->
+    <!-- Sección de inicio de sesión y comentarios -->
+    <section class="comments">
+        <h2>Deja tu comentario</h2>
+        <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
+        <div id="commentSection" style="display: none;">
+            <p>Hola, <span id="userName"></span></p>
+            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
+            <button onclick="submitComment()">Enviar Comentario</button>
+            <div id="commentsDisplay"></div>
         </div>
     </section>
 
