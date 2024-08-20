@@ -1,5 +1,5 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('.C:\Users\fabian.seleme\Downloads\casinoo.json'); // Cambia a la ruta correcta
+const serviceAccount = require('..netlify/functions/casinoo.json'); // Cambia a la ruta correcta
 
 if (!admin.apps.length) {
   admin.initializeApp({
