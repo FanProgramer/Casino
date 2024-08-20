@@ -9,10 +9,12 @@
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"></script>
 
+    <!-- Facebook SDK -->
     <script>
-        // Tu configuración de Firebase
+        // Configuración de Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyDkA3AKF_lAvyp_yWd_4fv-L7f1GL-kYZo",
             authDomain: "casino-6de4f.firebaseapp.com",
@@ -24,8 +26,9 @@
         };
 
         // Inicializa Firebase
-        const app = firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
+        const db = firebase.firestore();
 
         // Facebook SDK y autenticación con Firebase
         window.fbAsyncInit = function() {
@@ -83,16 +86,27 @@
             const userName = document.getElementById('userName').innerText;
 
             if (comment) {
-                // Aquí podrías enviar el comentario a tu servidor o almacenarlo
-                alert('Gracias por tu comentario, ' + userName + '!');
+                // Guarda el comentario en Firebase
+                db.collection('comments').add({
+                    name: userName,
+                    comment: comment,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp() // Marca de tiempo del servidor
+                })
+                .then(() => {
+                    console.log("Comentario guardado con éxito");
+                    alert('Gracias por tu comentario, ' + userName + '!');
 
-                // Opcional: Muestra el comentario en la página
-                const commentDisplay = document.createElement('p');
-                commentDisplay.innerText = userName + ': ' + comment;
-                document.getElementById('commentsDisplay').appendChild(commentDisplay);
+                    // Opcional: Muestra el comentario en la página
+                    const commentDisplay = document.createElement('p');
+                    commentDisplay.innerText = userName + ': ' + comment;
+                    document.getElementById('commentsDisplay').appendChild(commentDisplay);
 
-                // Limpia el textarea
-                document.getElementById('userComment').value = '';
+                    // Limpia el textarea
+                    document.getElementById('userComment').value = '';
+                })
+                .catch((error) => {
+                    console.error("Error al guardar el comentario: ", error);
+                });
             } else {
                 alert('Por favor escribe un comentario antes de enviarlo.');
             }
@@ -173,7 +187,11 @@
     </section>
 
     <footer>
-        <p>&copy; 2024 BOOM BET. Todos los derechos reservados.</p>
+        <p>&copy; 2024 Boom Bet. Todos los derechos reservados.</p>
     </footer>
+
+    <!-- Scripts de JavaScript -->
+    <script src="js/get-comments.js"></script>
+    <script src="js/save-comments.js"></script>
 </body>
 </html>
