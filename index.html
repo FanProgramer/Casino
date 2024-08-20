@@ -38,6 +38,26 @@
                 });
         }
 
+        // Cargar comentarios
+        function loadComments() {
+            database.ref('comments').once('value')
+                .then(snapshot => {
+                    const commentsDisplay = document.getElementById('commentsDisplay');
+                    commentsDisplay.innerHTML = ''; // Limpiar comentarios existentes
+                    snapshot.forEach(childSnapshot => {
+                        const comment = childSnapshot.val();
+                        if (comment && typeof comment.userName === 'string' && typeof comment.userComment === 'string') {
+                            const commentDisplay = document.createElement('p');
+                            commentDisplay.innerText = comment.userName + ': ' + comment.userComment;
+                            commentsDisplay.appendChild(commentDisplay);
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Error al cargar comentarios:', error);
+                });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const slideContainer = document.querySelector('.carousel-slide');
             const slides = document.querySelectorAll('.carousel-slide img');
@@ -131,19 +151,6 @@
             loadComments(); // Cargar comentarios después de guardar
         }
 
-        function loadComments() {
-            database.ref('comments').once('value', snapshot => {
-                const commentsDisplay = document.getElementById('commentsDisplay');
-                commentsDisplay.innerHTML = ''; // Limpiar comentarios existentes
-                snapshot.forEach(childSnapshot => {
-                    const comment = childSnapshot.val();
-                    const commentDisplay = document.createElement('p');
-                    commentDisplay.innerText = comment.userName + ': ' + comment.userComment;
-                    commentsDisplay.appendChild(commentDisplay);
-                });
-            });
-        }
-
         document.addEventListener('DOMContentLoaded', loadComments); // Cargar comentarios al cargar la página
     </script>
 </head>
@@ -191,20 +198,23 @@
 
     <section class="contact">
         <h2>Contáctanos</h2>
-        <p>¿Interesado en nuestros servicios? Déjanos tu comentario:</p>
-        <div id="commentSection" style="display: none;">
-            <form name="commentForm" onsubmit="submitComment(event)">
-                <textarea name="userComment" rows="4" placeholder="Escribe tu comentario aquí..." required></textarea>
-                <button type="submit">Enviar Comentario</button>
-            </form>
+        <p>¿Interesado en saber más o necesitas ayuda? Déjanos tu comentario y te responderemos a la brevedad.</p>
+        <form name="commentForm" onsubmit="submitComment(event)">
+            <div>
+                <label for="userComment">Comentario:</label>
+                <textarea id="userComment" name="userComment" rows="4" placeholder="Escribe tu comentario aquí"></textarea>
+            </div>
+            <button type="submit">Enviar</button>
+        </form>
+        <div id="commentSection" style="display:none;">
+            <h3>Comentarios:</h3>
             <div id="commentsDisplay"></div>
         </div>
-        <button onclick="loginWithFacebook()">Iniciar sesión con Facebook</button>
-        <p id="userName"></p>
     </section>
 
     <footer>
-        <p>&copy; 2024 Boom Bet. Todos los derechos reservados.</p>
+        <p>&copy; 2024 Boom Bet - Todos los derechos reservados.</p>
     </footer>
 </body>
 </html>
+
