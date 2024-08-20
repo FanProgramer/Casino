@@ -26,29 +26,28 @@
         
         // Obtener una referencia a la base de datos
         const database = firebase.database();
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            const slideContainer = document.querySelector('.carousel-slide');
-            const slides = document.querySelectorAll('.carousel-slide img');
-    
-            let counter = 0;
-            const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
+    </script>
+    <script>
+        // Cargar el SDK de Facebook
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId      : '499168329477257',  // Reemplaza con tu App ID
+                cookie     : true,
+                xfbml      : true,
+                version    : 'v17.0'
+            });
+            FB.AppEvents.logPageView();
+            checkLoginState();  // Verificar el estado de la sesión al cargar la página
+        };
 
-            function moveSlide() {
-                counter++;
-                if (counter >= slides.length / 4) {
-                    counter = 0; // Vuelve al inicio cuando llegue al final
-                }
-                slideContainer.style.transform = 'translateX(' + (-size * counter) + 'px)';
-            }
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
 
-            setInterval(moveSlide, 5000); // Cambia cada 5 segundos
-
-            // Cargar comentarios desde localStorage
-            loadComments();
-        });
-
-        // Verificar si el usuario ya ha iniciado sesión
         function checkLoginState() {
             const accessToken = localStorage.getItem('fbAccessToken');
             const userID = localStorage.getItem('fbUserID');
@@ -71,26 +70,6 @@
                 console.log('El usuario no ha iniciado sesión.');
             }
         }
-
-        // Facebook SDK
-        window.fbAsyncInit = function() {
-            FB.init({
-                appId      : '499168329477257',  // Reemplaza con tu App ID
-                cookie     : true,
-                xfbml      : true,
-                version    : 'v17.0'
-            });
-            FB.AppEvents.logPageView();   
-            checkLoginState();  // Verificar el estado de la sesión al cargar la página
-        };
-
-        (function(d, s, id){
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) {return;}
-            js = d.createElement(s); js.id = id;
-            js.src = "https://connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
 
         function loginWithFacebook() {
             FB.login(function(response) {
