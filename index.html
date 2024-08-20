@@ -6,110 +6,81 @@
     <title>Casino Online - BOOM BET</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
-    
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
+
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const slideContainer = document.querySelector('.carousel-slide');
-            const slides = document.querySelectorAll('.carousel-slide img');
-    
-            let counter = 0;
-            const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
-
-            function moveSlide() {
-                counter++;
-                if (counter >= slides.length / 4) {
-                    counter = 0; // Vuelve al inicio cuando llegue al final
-                }
-                slideContainer.style.transform = 'translateX(' + (-size * counter) + 'px)';
-            }
-
-            setInterval(moveSlide, 5000); // Cambia cada 5 segundos
-        });
-
-        // Verificar si el usuario ya ha iniciado sesión
-        function checkLoginState() {
-            const accessToken = localStorage.getItem('fbAccessToken');
-            const userID = localStorage.getItem('fbUserID');
-
-            if (accessToken) {
-                FB.getLoginStatus(function(response) {
-                    if (response.status === 'connected' && response.authResponse.userID === userID) {
-                        console.log('El usuario ya ha iniciado sesión.');
-                        FB.api('/me', { fields: 'name, email' }, function(response) {
-                            document.getElementById('userName').innerText = response.name;
-                            document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                        });
-                    } else {
-                        console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
-                        localStorage.removeItem('fbAccessToken');
-                        localStorage.removeItem('fbUserID');
-                    }
-                });
-            } else {
-                console.log('El usuario no ha iniciado sesión.');
-            }
-        }
-
-        // Facebook SDK
-        window.fbAsyncInit = function() {
-            FB.init({
-                appId      : '499168329477257',  // Reemplaza con tu App ID
-                cookie     : true,
-                xfbml      : true,
-                version    : 'v17.0'
-            });
-            FB.AppEvents.logPageView();   
-            checkLoginState();  // Verificar el estado de la sesión al cargar la página
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDkA3AKF_lAvyp_yWd_4fv-L7f1GL-kYZo",
+            authDomain: "casino-6de4f.firebaseapp.com",
+            databaseURL: "https://casino-6de4f-default-rtdb.firebaseio.com",
+            projectId: "casino-6de4f",
+            storageBucket: "casino-6de4f.appspot.com",
+            messagingSenderId: "46852261275",
+            appId: "1:46852261275:web:e1df4dde8f5eac24484d3e"
         };
 
-        (function(d, s, id){
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) {return;}
-            js = d.createElement(s); js.id = id;
-            js.src = "https://connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
+        // Inicializa Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-        function loginWithFacebook() {
-            FB.login(function(response) {
-                if (response.authResponse) {
-                    const accessToken = response.authResponse.accessToken;
-                    const userID = response.authResponse.userID;
-
-                    // Guarda el token en el almacenamiento local
-                    localStorage.setItem('fbAccessToken', accessToken);
-                    localStorage.setItem('fbUserID', userID);
-
-                    FB.api('/me', { fields: 'name, email' }, function(response) {
-                        console.log('Bienvenido, ' + response.name + '.');
-                        document.getElementById('userName').innerText = response.name;
-                        document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                    });
-                } else {
-                    console.log('Usuario canceló el login o no autorizó.');
-                }
-            }, {scope: 'public_profile,email'});
+        // Autenticación con Google
+        function loginWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).then(result => {
+                const user = result.user;
+                document.getElementById('userName').innerText = user.displayName;
+                document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+            }).catch(error => {
+                console.log('Error en la autenticación: ', error);
+            });
         }
 
+        // Guardar comentario en Firestore
         function submitComment() {
             const comment = document.getElementById('userComment').value;
             const userName = document.getElementById('userName').innerText;
-            
-            if (comment) {
-                // Aquí podrías enviar el comentario a tu servidor o almacenarlo
-                alert('Gracias por tu comentario, ' + userName + '!');
 
-                // Opcional: Muestra el comentario en la página
-                const commentDisplay = document.createElement('p');
-                commentDisplay.innerText = userName + ': ' + comment;
-                document.getElementById('commentsDisplay').appendChild(commentDisplay);
-                
-                // Limpia el textarea
-                document.getElementById('userComment').value = '';
+            if (comment) {
+                db.collection('comments').add({
+                    name: userName,
+                    comment: comment,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    alert('Gracias por tu comentario, ' + userName + '!');
+                    displayComment(userName, comment);
+                    document.getElementById('userComment').value = ''; // Limpiar el campo de comentario
+                }).catch(error => {
+                    console.error('Error al guardar el comentario: ', error);
+                });
             } else {
                 alert('Por favor escribe un comentario antes de enviarlo.');
             }
         }
+
+        // Mostrar comentario en la página
+        function displayComment(name, comment) {
+            const commentDisplay = document.createElement('p');
+            commentDisplay.innerText = name + ': ' + comment;
+            document.getElementById('commentsDisplay').appendChild(commentDisplay);
+        }
+
+        // Cargar comentarios al iniciar
+        function loadComments() {
+            db.collection('comments').orderBy('timestamp', 'desc').get().then(querySnapshot => {
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    displayComment(data.name, data.comment);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadComments);
     </script>
 </head>
 <body>
@@ -174,7 +145,7 @@
     <!-- Sección de inicio de sesión y comentarios -->
     <section class="comments">
         <h2>Deja tu comentario</h2>
-        <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
+        <button onclick="loginWithGoogle()">Inicia sesión con Google</button>
         <div id="commentSection" style="display: none;">
             <p>Escribe tu reseña, <span id="userName"></span>:</p>
             <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
