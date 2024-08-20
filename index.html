@@ -7,61 +7,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     
-    <script src="https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.6/firebase-database.js"></script>
     <script>
-        // Configuración de Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDkA3AKF_lAvyp_yWd_4fv-L7f1GL-kYZo",
-            authDomain: "casino-6de4f.firebaseapp.com",
-            databaseURL: "https://casino-6de4f-default-rtdb.firebaseio.com",
-            projectId: "casino-6de4f",
-            storageBucket: "casino-6de4f.appspot.com",
-            messagingSenderId: "46852261275",
-            appId: "1:46852261275:web:e1df4dde8f5eac24484d3e",
-            measurementId: "G-G19XGKD9TB"
-        };
-
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Guardar comentario
-        function saveComment(userName, userComment) {
-            const commentRef = database.ref('comments');
-            commentRef.push({ userName, userComment })
-                .then(() => {
-                    console.log('Comentario guardado');
-                })
-                .catch(error => {
-                    console.error('Error al guardar comentario:', error);
-                });
-        }
-
-        // Cargar comentarios
-        function loadComments() {
-            database.ref('comments').once('value')
-                .then(snapshot => {
-                    const commentsDisplay = document.getElementById('commentsDisplay');
-                    commentsDisplay.innerHTML = ''; // Limpiar comentarios existentes
-                    snapshot.forEach(childSnapshot => {
-                        const comment = childSnapshot.val();
-                        if (comment && typeof comment.userName === 'string' && typeof comment.userComment === 'string') {
-                            const commentDisplay = document.createElement('p');
-                            commentDisplay.innerText = comment.userName + ': ' + comment.userComment;
-                            commentsDisplay.appendChild(commentDisplay);
-                        }
-                    });
-                })
-                .catch(error => {
-                    console.error('Error al cargar comentarios:', error);
-                });
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
             const slideContainer = document.querySelector('.carousel-slide');
             const slides = document.querySelectorAll('.carousel-slide img');
-
+    
             let counter = 0;
             const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
 
@@ -141,17 +91,25 @@
             }, {scope: 'public_profile,email'});
         }
 
-        function submitComment(event) {
-            event.preventDefault(); // Evita el envío del formulario por defecto
+        function submitComment() {
+            const comment = document.getElementById('userComment').value;
+            const userName = document.getElementById('userName').innerText;
+            
+            if (comment) {
+                // Aquí podrías enviar el comentario a tu servidor o almacenarlo
+                alert('Gracias por tu comentario, ' + userName + '!');
 
-            const form = document.querySelector('form[name="commentForm"]');
-            const formData = new FormData(form);
-            saveComment(document.getElementById('userName').innerText, formData.get('userComment'));
-            form.reset();
-            loadComments(); // Cargar comentarios después de guardar
+                // Opcional: Muestra el comentario en la página
+                const commentDisplay = document.createElement('p');
+                commentDisplay.innerText = userName + ': ' + comment;
+                document.getElementById('commentsDisplay').appendChild(commentDisplay);
+                
+                // Limpia el textarea
+                document.getElementById('userComment').value = '';
+            } else {
+                alert('Por favor escribe un comentario antes de enviarlo.');
+            }
         }
-
-        document.addEventListener('DOMContentLoaded', loadComments); // Cargar comentarios al cargar la página
     </script>
 </head>
 <body>
@@ -165,13 +123,16 @@
     <section class="services">
         <h2>Nuestros Servicios</h2>
         <p>Disfruta de los mejores Slot, Blackjack, Roulette, Casino en vivo, Apuestas deportivas y mucho más.<br><br>
+
             Reglas para jugar en nuestra plataforma?<br>
             "NINGUNA"<br>
             Jugá sin restricciones!!<br><br>
+            
             Está todo permitido:<br>
             ✓ Sin límite de apuesta<br>
             ✓ Resguardo de fichas<br>
             ✓ Retiros ilimitados<br><br>
+        
             SISTEMA DE BANCA LIBRE.<br><br>
             Somos tu mejor opción!! 🤩
         </p>
@@ -199,22 +160,33 @@
     <section class="contact">
         <h2>Contáctanos</h2>
         <p>¿Interesado en empezar a ganar a lo grande? ¡Contáctanos!</p>
-        <form name="commentForm" onsubmit="submitComment(event)">
-            <div>
-                <label for="userComment">Comentario:</label>
-                <textarea id="userComment" name="userComment" rows="4" placeholder="Escribe tu comentario aquí"></textarea>
-            </div>
-            <button type="submit">Enviar</button>
-        </form>
-        <div id="commentSection" style="display:none;">
-            <h3>Comentarios:</h3>
-            <div id="commentsDisplay"></div>
+        <a href="https://wa.link/mw2adr" class="btn whatsapp">WhatsApp</a>
+        <a href="https://facebook.com/tu-pagina" class="btn facebook">Facebook</a>
+        <a href="https://www.instagram.com/casino_boombet4?utm_source=qr&igsh=dmR4NjBiamhvZ2dr" class="btn instagram">Instagram</a>
+    </section>
+
+    <section class="share">
+        <h2>Comparte Nuestra Página</h2>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://tu-pagina.com" class="btn facebook">Compartir en Facebook</a>
+        <a href="https://twitter.com/intent/tweet?url=https://tu-pagina.com&text=Echa%20un%20vistazo%20a%20este%20casino%20online!" class="btn twitter">Compartir en Twitter</a>
+    </section>
+
+    <!-- Sección de inicio de sesión y comentarios -->
+    <section class="comments">
+        <h2>Deja tu comentario</h2>
+        <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
+        <div id="commentSection" style="display: none;">
+            <p>Escribe tu reseña, <span id="userName"></span>:</p>
+            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
+            <button onclick="submitComment()">Enviar</button>
+        </div>
+        <div id="commentsDisplay">
+            <!-- Aquí se mostrarán los comentarios -->
         </div>
     </section>
 
     <footer>
-        <p>&copy; © 2024 Casino Online - BOOM BET. Todos los derechos reservados..</p>
+        <p>&copy; 2024 BOOM BET. Todos los derechos reservados.</p>
     </footer>
 </body>
 </html>
-
