@@ -9,6 +9,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js"></script>
     <script>
         // Configuración de Firebase
         const firebaseConfig = {
@@ -23,8 +24,6 @@
         
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
-        
-        // Obtener una referencia a la base de datos
         const database = firebase.database();
     </script>
     <script>
@@ -68,7 +67,9 @@
                 });
             } else {
                 console.log('El usuario no ha iniciado sesión.');
+                document.getElementById('commentSection').style.display = 'none'; // Oculta la sección de comentarios
             }
+            loadComments(); // Cargar comentarios sin necesidad de iniciar sesión
         }
 
         function loginWithFacebook() {
@@ -97,16 +98,19 @@
             const userName = document.getElementById('userName').innerText;
             
             if (comment) {
-                // Guardar comentario en localStorage
-                let comments = JSON.parse(localStorage.getItem('comments')) || [];
-                comments.push({ userName: userName, comment: comment });
-                localStorage.setItem('comments', JSON.stringify(comments));
-                
-                // Muestra el comentario en la página
-                displayComments();
-                
-                // Limpia el textarea
-                document.getElementById('userComment').value = '';
+                // Guardar comentario en Firebase Realtime Database
+                database.ref('comments').push({
+                    userName: userName,
+                    comment: comment
+                }).then(() => {
+                    console.log('Comentario guardado en Firebase.');
+                    // Muestra el comentario en la página
+                    displayComments();
+                    // Limpia el textarea
+                    document.getElementById('userComment').value = '';
+                }).catch((error) => {
+                    console.error('Error al guardar el comentario en Firebase: ', error);
+                });
             } else {
                 alert('Por favor escribe un comentario antes de enviarlo.');
             }
@@ -115,11 +119,17 @@
         function displayComments() {
             const commentsDisplay = document.getElementById('commentsDisplay');
             commentsDisplay.innerHTML = ''; // Limpia los comentarios actuales
-            let comments = JSON.parse(localStorage.getItem('comments')) || [];
-            comments.forEach(comment => {
-                const commentDisplay = document.createElement('p');
-                commentDisplay.innerText = comment.userName + ': ' + comment.comment;
-                commentsDisplay.appendChild(commentDisplay);
+
+            // Obtener los comentarios de Firebase Realtime Database
+            database.ref('comments').once('value').then((snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    const commentData = childSnapshot.val();
+                    const commentDisplay = document.createElement('p');
+                    commentDisplay.innerText = commentData.userName + ': ' + commentData.comment;
+                    commentsDisplay.appendChild(commentDisplay);
+                });
+            }).catch((error) => {
+                console.error('Error al cargar los comentarios de Firebase: ', error);
             });
         }
 
@@ -176,11 +186,9 @@
     <section class="contact">
         <h2>Contáctanos</h2>
         <p>¿Interesado en empezar a ganar dinero con nosotros? ¡No dudes en contactarnos!</p>
-        <button onclick="loginWithFacebook()">Iniciar sesión con Facebook</button>
+        <button onclick="loginWithFacebook()">Iniciar Sesión con Facebook</button>
         <div id="commentSection" style="display: none;">
-            <h3>Deja tu comentario:</h3>
-            <textarea id="userComment" rows="4" cols="50" placeholder="Escribe tu comentario aquí..."></textarea>
-            <br>
+            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea><br>
             <button onclick="submitComment()">Enviar Comentario</button>
             <div id="commentsDisplay"></div>
         </div>
@@ -192,3 +200,4 @@
     </footer>
 </body>
 </html>
+
