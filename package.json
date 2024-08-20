@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "sqlite3": "^5.1.7"
+    "firebase-admin": "^11.1.0",
+    "firebase-functions": "^4.2.0"
   }
 }
