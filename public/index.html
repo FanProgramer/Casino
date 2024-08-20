@@ -6,28 +6,51 @@
     <title>Casino Online - BOOM BET</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js"></script>
-
+    
     <script>
-        // Tu configuración de Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDkA3AKF_lAvyp_yWd_4fv-L7f1GL-kYZo",
-            authDomain: "casino-6de4f.firebaseapp.com",
-            databaseURL: "https://casino-6de4f-default-rtdb.firebaseio.com",
-            projectId: "casino-6de4f",
-            storageBucket: "casino-6de4f.appspot.com",
-            messagingSenderId: "46852261275",
-            appId: "1:46852261275:web:e1df4dde8f5eac24484d3e"
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            const slideContainer = document.querySelector('.carousel-slide');
+            const slides = document.querySelectorAll('.carousel-slide img');
+    
+            let counter = 0;
+            const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
 
-        // Inicializa Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
+            function moveSlide() {
+                counter++;
+                if (counter >= slides.length / 4) {
+                    counter = 0; // Vuelve al inicio cuando llegue al final
+                }
+                slideContainer.style.transform = 'translateX(' + (-size * counter) + 'px)';
+            }
 
-        // Facebook SDK y autenticación con Firebase
+            setInterval(moveSlide, 5000); // Cambia cada 5 segundos
+        });
+
+        // Verificar si el usuario ya ha iniciado sesión
+        function checkLoginState() {
+            const accessToken = localStorage.getItem('fbAccessToken');
+            const userID = localStorage.getItem('fbUserID');
+
+            if (accessToken) {
+                FB.getLoginStatus(function(response) {
+                    if (response.status === 'connected' && response.authResponse.userID === userID) {
+                        console.log('El usuario ya ha iniciado sesión.');
+                        FB.api('/me', { fields: 'name, email' }, function(response) {
+                            document.getElementById('userName').innerText = response.name;
+                            document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+                        });
+                    } else {
+                        console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
+                        localStorage.removeItem('fbAccessToken');
+                        localStorage.removeItem('fbUserID');
+                    }
+                });
+            } else {
+                console.log('El usuario no ha iniciado sesión.');
+            }
+        }
+
+        // Facebook SDK
         window.fbAsyncInit = function() {
             FB.init({
                 appId      : '499168329477257',  // Reemplaza con tu App ID
@@ -51,15 +74,16 @@
             FB.login(function(response) {
                 if (response.authResponse) {
                     const accessToken = response.authResponse.accessToken;
-                    const credential = firebase.auth.FacebookAuthProvider.credential(accessToken);
+                    const userID = response.authResponse.userID;
 
-                    auth.signInWithCredential(credential).then((result) => {
-                        const user = result.user;
-                        console.log('Bienvenido, ' + user.displayName + '.');
-                        document.getElementById('userName').innerText = user.displayName;
+                    // Guarda el token en el almacenamiento local
+                    localStorage.setItem('fbAccessToken', accessToken);
+                    localStorage.setItem('fbUserID', userID);
+
+                    FB.api('/me', { fields: 'name, email' }, function(response) {
+                        console.log('Bienvenido, ' + response.name + '.');
+                        document.getElementById('userName').innerText = response.name;
                         document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                    }).catch((error) => {
-                        console.error('Error en la autenticación con Firebase:', error);
                     });
                 } else {
                     console.log('Usuario canceló el login o no autorizó.');
@@ -67,21 +91,10 @@
             }, {scope: 'public_profile,email'});
         }
 
-        // Verificar si el usuario ya ha iniciado sesión
-        auth.onAuthStateChanged(function(user) {
-            if (user) {
-                console.log('El usuario ya ha iniciado sesión.');
-                document.getElementById('userName').innerText = user.displayName;
-                document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-            } else {
-                console.log('El usuario no ha iniciado sesión.');
-            }
-        });
-
         function submitComment() {
             const comment = document.getElementById('userComment').value;
             const userName = document.getElementById('userName').innerText;
-
+            
             if (comment) {
                 // Aquí podrías enviar el comentario a tu servidor o almacenarlo
                 alert('Gracias por tu comentario, ' + userName + '!');
@@ -90,7 +103,7 @@
                 const commentDisplay = document.createElement('p');
                 commentDisplay.innerText = userName + ': ' + comment;
                 document.getElementById('commentsDisplay').appendChild(commentDisplay);
-
+                
                 // Limpia el textarea
                 document.getElementById('userComment').value = '';
             } else {
@@ -114,12 +127,12 @@
             Reglas para jugar en nuestra plataforma?<br>
             "NINGUNA"<br>
             Jugá sin restricciones!!<br><br>
-
+            
             Está todo permitido:<br>
             ✓ Sin límite de apuesta<br>
             ✓ Resguardo de fichas<br>
             ✓ Retiros ilimitados<br><br>
-
+        
             SISTEMA DE BANCA LIBRE.<br><br>
             Somos tu mejor opción!! 🤩
         </p>
