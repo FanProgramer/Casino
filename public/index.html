@@ -31,86 +31,38 @@
  
          // Facebook SDK y autenticación con Firebase
          window.fbAsyncInit = function() {
-             FB.init({
-                 appId      : '499168329477257',  // Reemplaza con tu App ID
-                 cookie     : true,
-                 xfbml      : true,
-                 version    : 'v17.0'
-             });
-             FB.AppEvents.logPageView();   
-             checkLoginState();  // Verificar el estado de la sesión al cargar la página
-         };
- 
-         (function(d, s, id){
-             var js, fjs = d.getElementsByTagName(s)[0];
-             if (d.getElementById(id)) {return;}
-             js = d.createElement(s); js.id = id;
-             js.src = "https://connect.facebook.net/en_US/sdk.js";
-             fjs.parentNode.insertBefore(js, fjs);
-         }(document, 'script', 'facebook-jssdk'));
- 
-         function loginWithFacebook() {
-             FB.login(function(response) {
-                 if (response.authResponse) {
-                     const accessToken = response.authResponse.accessToken;
-                     const credential = firebase.auth.FacebookAuthProvider.credential(accessToken);
- 
-                     auth.signInWithCredential(credential).then((result) => {
-                         const user = result.user;
-                         console.log('Bienvenido, ' + user.displayName + '.');
-                         document.getElementById('userName').innerText = user.displayName;
-                         document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                     }).catch((error) => {
-                         console.error('Error en la autenticación con Firebase:', error);
-                     });
-                 } else {
-                     console.log('Usuario canceló el login o no autorizó.');
-                 }
-             }, {scope: 'public_profile,email'});
-         }
- 
-         // Verificar si el usuario ya ha iniciado sesión
-         auth.onAuthStateChanged(function(user) {
-             if (user) {
-                 console.log('El usuario ya ha iniciado sesión.');
-                 document.getElementById('userName').innerText = user.displayName;
-                 document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-             } else {
-                 console.log('El usuario no ha iniciado sesión.');
-             }
-         });
- 
-         function submitComment() {
-             const comment = document.getElementById('userComment').value;
-             const userName = document.getElementById('userName').innerText;
- 
-             if (comment) {
-                 // Guarda el comentario en Firebase
-                 db.collection('comments').add({
-                     name: userName,
-                     comment: comment,
-                     timestamp: firebase.firestore.FieldValue.serverTimestamp() // Marca de tiempo del servidor
-                 })
-                 .then(() => {
-                     console.log("Comentario guardado con éxito");
-                     alert('Gracias por tu comentario, ' + userName + '!');
- 
-                     // Opcional: Muestra el comentario en la página
-                     const commentDisplay = document.createElement('p');
-                     commentDisplay.innerText = userName + ': ' + comment;
-                     document.getElementById('commentsDisplay').appendChild(commentDisplay);
- 
-                     // Limpia el textarea
-                     document.getElementById('userComment').value = '';
-                 })
-                 .catch((error) => {
-                     console.error("Error al guardar el comentario: ", error);
-                 });
-             } else {
-                 alert('Por favor escribe un comentario antes de enviarlo.');
-             }
-         }
-     </script>
+        FB.init({
+          appId      : '499168329477257', // Reemplaza con tu ID de aplicación de Facebook
+          cookie     : true,
+          xfbml      : true,
+          version    : 'v14.0' // Usa la versión actual del SDK
+        });
+
+        // Aquí puedes añadir otros manejadores o configuraciones después de que el SDK esté cargado
+      };
+
+      (function(d, s, id){
+         var js, fjs = d.getElementsByTagName(s)[0];
+         if (d.getElementById(id)) {return;}
+         js = d.createElement(s); js.id = id;
+         js.src = "https://connect.facebook.net/en_US/sdk.js";
+         fjs.parentNode.insertBefore(js, fjs);
+       }(document, 'script', 'facebook-jssdk'));
+    </script>
+
+    <button onclick="loginWithFacebook()">Iniciar sesión con Facebook</button>
+
+    <script>
+      function loginWithFacebook() {
+        FB.login(function(response) {
+          if (response.authResponse) {
+            console.log('Bienvenido, ' + response.authResponse.name);
+          } else {
+            console.log('Usuario canceló el login.');
+          }
+        }, {scope: 'public_profile,email'});
+      }
+    </script>
 </head>
 <body>
     <header>
