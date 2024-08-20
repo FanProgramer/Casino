@@ -14,8 +14,14 @@ exports.handler = async () => {
       }
       comments = rows;
       db.close();
-      resolve({ statusCode: 200, body: JSON.stringify(comments) });
+      resolve({
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*' // Permitir solicitudes desde cualquier origen
+        },
+        body: JSON.stringify(comments)
+      });
     });
   });
 };
-

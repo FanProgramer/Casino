@@ -13,9 +13,14 @@ exports.handler = async (event) => {
         reject({ statusCode: 500, body: 'Error inserting comment' });
       }
       db.close();
-      resolve({ statusCode: 200, body: 'Comment saved successfully' });
+      resolve({
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*' // Permitir solicitudes desde cualquier origen
+        },
+        body: 'Comment saved successfully'
+      });
     });
   });
 };
-
-
