@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 
-    <!-- Cargar SDK de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js"></script>
@@ -25,27 +24,75 @@
         
         // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database(); // Definir la variable de base de datos aquí
-
-        // Función para cargar y mostrar comentarios
-        function displayComments() {
-            const commentsDisplay = document.getElementById('commentsDisplay');
-            commentsDisplay.innerHTML = ''; // Limpia los comentarios actuales
-
-            // Obtener los comentarios de Firebase Realtime Database
-            database.ref('comments').once('value').then((snapshot) => {
-                snapshot.forEach((childSnapshot) => {
-                    const commentData = childSnapshot.val();
-                    const commentDisplay = document.createElement('p');
-                    commentDisplay.innerText = commentData.userName + ': ' + commentData.comment;
-                    commentsDisplay.appendChild(commentDisplay);
-                });
-            }).catch((error) => {
-                console.error('Error al cargar los comentarios de Firebase: ', error);
+        const database = firebase.database();
+    </script>
+    <script>
+        // Cargar el SDK de Facebook
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId      : '499168329477257',  // Reemplaza con tu App ID
+                cookie     : true,
+                xfbml      : true,
+                version    : 'v17.0'
             });
+            FB.AppEvents.logPageView();
+            checkLoginState();  // Verificar el estado de la sesión al cargar la página
+        };
+
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        function checkLoginState() {
+            const accessToken = localStorage.getItem('fbAccessToken');
+            const userID = localStorage.getItem('fbUserID');
+
+            if (accessToken) {
+                FB.getLoginStatus(function(response) {
+                    if (response.status === 'connected' && response.authResponse.userID === userID) {
+                        console.log('El usuario ya ha iniciado sesión.');
+                        FB.api('/me', { fields: 'name, email' }, function(response) {
+                            document.getElementById('userName').innerText = response.name;
+                            document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+                        });
+                    } else {
+                        console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
+                        localStorage.removeItem('fbAccessToken');
+                        localStorage.removeItem('fbUserID');
+                    }
+                });
+            } else {
+                console.log('El usuario no ha iniciado sesión.');
+                document.getElementById('commentSection').style.display = 'none'; // Oculta la sección de comentarios
+            }
+            loadComments(); // Cargar comentarios sin necesidad de iniciar sesión
         }
 
-        // Función para enviar comentario
+        function loginWithFacebook() {
+            FB.login(function(response) {
+                if (response.authResponse) {
+                    const accessToken = response.authResponse.accessToken;
+                    const userID = response.authResponse.userID;
+
+                    // Guarda el token en el almacenamiento local
+                    localStorage.setItem('fbAccessToken', accessToken);
+                    localStorage.setItem('fbUserID', userID);
+
+                    FB.api('/me', { fields: 'name, email' }, function(response) {
+                        console.log('Bienvenido, ' + response.name + '.');
+                        document.getElementById('userName').innerText = response.name;
+                        document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+                    });
+                } else {
+                    console.log('Usuario canceló el login o no autorizó.');
+                }
+            }, {scope: 'public_profile,email'});
+        }
+
         function submitComment() {
             const comment = document.getElementById('userComment').value;
             const userName = document.getElementById('userName').innerText;
@@ -69,76 +116,29 @@
             }
         }
 
-        // Función para verificar el estado de inicio de sesión
-        function checkLoginState() {
-            const accessToken = localStorage.getItem('fbAccessToken');
-            const userID = localStorage.getItem('fbUserID');
+        function displayComments() {
+            const commentsDisplay = document.getElementById('commentsDisplay');
+            commentsDisplay.innerHTML = ''; // Limpia los comentarios actuales
 
-            if (accessToken) {
-                FB.getLoginStatus(function(response) {
-                    if (response.status === 'connected' && response.authResponse.userID === userID) {
-                        console.log('El usuario ya ha iniciado sesión.');
-                        FB.api('/me', { fields: 'name, email' }, function(response) {
-                            document.getElementById('userName').innerText = response.name;
-                            document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                        });
-                    } else {
-                        console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
-                        localStorage.removeItem('fbAccessToken');
-                        localStorage.removeItem('fbUserID');
-                    }
+            // Obtener los comentarios de Firebase Realtime Database
+            database.ref('comments').once('value').then((snapshot) => {
+                snapshot.forEach((childSnapshot) => {
+                    const commentData = childSnapshot.val();
+                    const commentDisplay = document.createElement('p');
+                    commentDisplay.innerText = commentData.userName + ': ' + commentData.comment;
+                    commentsDisplay.appendChild(commentDisplay);
                 });
-            } else {
-                console.log('El usuario no ha iniciado sesión.');
-                document.getElementById('commentSection').style.display = 'none'; // Oculta la sección de comentarios
-            }
-            displayComments(); // Cargar comentarios sin necesidad de iniciar sesión
-        }
-
-        // Función para iniciar sesión con Facebook
-        function loginWithFacebook() {
-            FB.login(function(response) {
-                if (response.authResponse) {
-                    const accessToken = response.authResponse.accessToken;
-                    const userID = response.authResponse.userID;
-
-                    // Guarda el token en el almacenamiento local
-                    localStorage.setItem('fbAccessToken', accessToken);
-                    localStorage.setItem('fbUserID', userID);
-
-                    FB.api('/me', { fields: 'name, email' }, function(response) {
-                        console.log('Bienvenido, ' + response.name + '.');
-                        document.getElementById('userName').innerText = response.name;
-                        document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                    });
-                } else {
-                    console.log('Usuario canceló el login o no autorizó.');
-                }
-            }, {scope: 'public_profile,email'});
-        }
-
-        // Cargar el SDK de Facebook y ejecutar funciones
-        window.fbAsyncInit = function() {
-            FB.init({
-                appId      : '499168329477257',  // Reemplaza con tu App ID
-                cookie     : true,
-                xfbml      : true,
-                version    : 'v17.0'
+            }).catch((error) => {
+                console.error('Error al cargar los comentarios de Firebase: ', error);
             });
-            FB.AppEvents.logPageView();
-            checkLoginState();  // Verificar el estado de la sesión al cargar la página
-        };
+        }
 
-        (function(d, s, id){
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) {return;}
-            js = d.createElement(s); js.id = id;
-            js.src = "https://connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
+        function loadComments() {
+            displayComments(); // Cargar los comentarios cuando se carga la página
+        }
     </script>
 </head>
-<body onload="displayComments()">
+<body>
     <header>
         <h1>Bienvenido a Boom Bet</h1>
         <h3>Casino Online 24hs.</h3>
@@ -183,12 +183,12 @@
         </div>
     </section>
 
-    <section class="comments">
-        <h2>Comentarios</h2>
-        <button onclick="loginWithFacebook()">Iniciar sesión con Facebook</button>
+    <section class="contact">
+        <h2>Contáctanos</h2>
+        <p>¿Interesado en empezar a ganar dinero con nosotros? ¡No dudes en contactarnos!</p>
+        <button onclick="loginWithFacebook()">Iniciar Sesión con Facebook</button>
         <div id="commentSection" style="display: none;">
-            <h3>Comentarios</h3>
-            <textarea id="userComment" placeholder="Escribe tu comentario aquí"></textarea>
+            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea><br>
             <button onclick="submitComment()">Enviar Comentario</button>
             <div id="commentsDisplay"></div>
         </div>
@@ -200,3 +200,4 @@
     </footer>
 </body>
 </html>
+
