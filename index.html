@@ -7,80 +7,95 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.19.1/firebase-auth.js"></script>
 
     <script>
-        // Configuración de Firebase
+        // Tu configuración de Firebase
         const firebaseConfig = {
-            apiKey: "AIzaSyDkA3AKF_lAvyp_yWd_4fv-L7f1GL-kYZo",
-            authDomain: "casino-6de4f.firebaseapp.com",
-            databaseURL: "https://casino-6de4f-default-rtdb.firebaseio.com",
-            projectId: "casino-6de4f",
-            storageBucket: "casino-6de4f.appspot.com",
-            messagingSenderId: "46852261275",
-            appId: "1:46852261275:web:e1df4dde8f5eac24484d3e"
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_DOMINIO.firebaseapp.com",
+            projectId: "TU_PROJECT_ID",
+            storageBucket: "TU_BUCKET.appspot.com",
+            messagingSenderId: "TU_SENDER_ID",
+            appId: "TU_APP_ID"
         };
 
         // Inicializa Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.firestore();
 
-        // Autenticación con Google
-        function loginWithGoogle() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).then(result => {
-                const user = result.user;
-                document.getElementById('userName').innerText = user.displayName;
-                document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-            }).catch(error => {
-                console.log('Error en la autenticación: ', error);
+        // Facebook SDK y autenticación con Firebase
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId      : '499168329477257',  // Reemplaza con tu App ID
+                cookie     : true,
+                xfbml      : true,
+                version    : 'v17.0'
             });
+            FB.AppEvents.logPageView();   
+            checkLoginState();  // Verificar el estado de la sesión al cargar la página
+        };
+
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        function loginWithFacebook() {
+            FB.login(function(response) {
+                if (response.authResponse) {
+                    const accessToken = response.authResponse.accessToken;
+                    const credential = firebase.auth.FacebookAuthProvider.credential(accessToken);
+
+                    auth.signInWithCredential(credential).then((result) => {
+                        const user = result.user;
+                        console.log('Bienvenido, ' + user.displayName + '.');
+                        document.getElementById('userName').innerText = user.displayName;
+                        document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+                    }).catch((error) => {
+                        console.error('Error en la autenticación con Firebase:', error);
+                    });
+                } else {
+                    console.log('Usuario canceló el login o no autorizó.');
+                }
+            }, {scope: 'public_profile,email'});
         }
 
-        // Guardar comentario en Firestore
+        // Verificar si el usuario ya ha iniciado sesión
+        auth.onAuthStateChanged(function(user) {
+            if (user) {
+                console.log('El usuario ya ha iniciado sesión.');
+                document.getElementById('userName').innerText = user.displayName;
+                document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+            } else {
+                console.log('El usuario no ha iniciado sesión.');
+            }
+        });
+
         function submitComment() {
             const comment = document.getElementById('userComment').value;
             const userName = document.getElementById('userName').innerText;
 
             if (comment) {
-                db.collection('comments').add({
-                    name: userName,
-                    comment: comment,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(() => {
-                    alert('Gracias por tu comentario, ' + userName + '!');
-                    displayComment(userName, comment);
-                    document.getElementById('userComment').value = ''; // Limpiar el campo de comentario
-                }).catch(error => {
-                    console.error('Error al guardar el comentario: ', error);
-                });
+                // Aquí podrías enviar el comentario a tu servidor o almacenarlo
+                alert('Gracias por tu comentario, ' + userName + '!');
+
+                // Opcional: Muestra el comentario en la página
+                const commentDisplay = document.createElement('p');
+                commentDisplay.innerText = userName + ': ' + comment;
+                document.getElementById('commentsDisplay').appendChild(commentDisplay);
+
+                // Limpia el textarea
+                document.getElementById('userComment').value = '';
             } else {
                 alert('Por favor escribe un comentario antes de enviarlo.');
             }
         }
-
-        // Mostrar comentario en la página
-        function displayComment(name, comment) {
-            const commentDisplay = document.createElement('p');
-            commentDisplay.innerText = name + ': ' + comment;
-            document.getElementById('commentsDisplay').appendChild(commentDisplay);
-        }
-
-        // Cargar comentarios al iniciar
-        function loadComments() {
-            db.collection('comments').orderBy('timestamp', 'desc').get().then(querySnapshot => {
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    displayComment(data.name, data.comment);
-                });
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', loadComments);
     </script>
 </head>
 <body>
@@ -98,12 +113,12 @@
             Reglas para jugar en nuestra plataforma?<br>
             "NINGUNA"<br>
             Jugá sin restricciones!!<br><br>
-            
+
             Está todo permitido:<br>
             ✓ Sin límite de apuesta<br>
             ✓ Resguardo de fichas<br>
             ✓ Retiros ilimitados<br><br>
-        
+
             SISTEMA DE BANCA LIBRE.<br><br>
             Somos tu mejor opción!! 🤩
         </p>
@@ -145,7 +160,7 @@
     <!-- Sección de inicio de sesión y comentarios -->
     <section class="comments">
         <h2>Deja tu comentario</h2>
-        <button onclick="loginWithGoogle()">Inicia sesión con Google</button>
+        <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
         <div id="commentSection" style="display: none;">
             <p>Escribe tu reseña, <span id="userName"></span>:</p>
             <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
