@@ -1,29 +1,35 @@
 const admin = require('firebase-admin');
-admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
-  databaseURL: 'https://casino-6de4f-default-rtdb.firebaseio.com'
-});
+const serviceAccount = require('.C:\Users\fabian.seleme\Downloads\casinoo.json'); // Cambia a la ruta correcta
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: 'https://casino-6de4f-default-rtdb.firebaseio.com' // Cambia a tu URL de base de datos
+  });
+}
 
 const db = admin.firestore();
 
-exports.handler = async function(event, context) {
-  try {
-    const { name, comment } = JSON.parse(event.body);
-
-    await db.collection('comments').add({
-      name: name,
-      comment: comment,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    });
-
+exports.handler = async (event) => {
+  if (event.httpMethod === 'POST') {
+    try {
+      const { comment, userName } = JSON.parse(event.body);
+      await db.collection('comments').add({ comment, userName, timestamp: admin.firestore.FieldValue.serverTimestamp() });
+      return {
+        statusCode: 200,
+        body: JSON.stringify({ message: 'Comentario guardado con éxito.' })
+      };
+    } catch (error) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: error.message })
+      };
+    }
+  } else {
     return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true }),
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Método no permitido' })
     };
   }
 };
+

@@ -1,24 +1,27 @@
 const admin = require('firebase-admin');
-admin.initializeApp({
-  credential: admin.credential.applicationDefault(),
-  databaseURL: 'https://casino-6de4f-default-rtdb.firebaseio.com'
-});
+const serviceAccount = require('.C:\Users\fabian.seleme\Downloads\casinoo.json'); // Cambia a la ruta correcta
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: 'https://casino-6de4f-default-rtdb.firebaseio.com' // Cambia a tu URL de base de datos
+  });
+}
 
 const db = admin.firestore();
 
-exports.handler = async function(event, context) {
+exports.handler = async (event) => {
   try {
     const snapshot = await db.collection('comments').orderBy('timestamp', 'desc').get();
-    const comments = snapshot.docs.map(doc => doc.data());
-
+    const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     return {
       statusCode: 200,
-      body: JSON.stringify(comments),
+      body: JSON.stringify(comments)
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message }),
+      body: JSON.stringify({ error: error.message })
     };
   }
 };

@@ -24,6 +24,9 @@
             }
 
             setInterval(moveSlide, 5000); // Cambia cada 5 segundos
+
+            // Cargar comentarios desde localStorage
+            loadComments();
         });
 
         // Verificar si el usuario ya ha iniciado sesión
@@ -96,19 +99,34 @@
             const userName = document.getElementById('userName').innerText;
             
             if (comment) {
-                // Aquí podrías enviar el comentario a tu servidor o almacenarlo
-                alert('Gracias por tu comentario, ' + userName + '!');
-
-                // Opcional: Muestra el comentario en la página
-                const commentDisplay = document.createElement('p');
-                commentDisplay.innerText = userName + ': ' + comment;
-                document.getElementById('commentsDisplay').appendChild(commentDisplay);
+                // Guardar comentario en localStorage
+                let comments = JSON.parse(localStorage.getItem('comments')) || [];
+                comments.push({ userName: userName, comment: comment });
+                localStorage.setItem('comments', JSON.stringify(comments));
+                
+                // Muestra el comentario en la página
+                displayComments();
                 
                 // Limpia el textarea
                 document.getElementById('userComment').value = '';
             } else {
                 alert('Por favor escribe un comentario antes de enviarlo.');
             }
+        }
+
+        function displayComments() {
+            const commentsDisplay = document.getElementById('commentsDisplay');
+            commentsDisplay.innerHTML = ''; // Limpia los comentarios actuales
+            let comments = JSON.parse(localStorage.getItem('comments')) || [];
+            comments.forEach(comment => {
+                const commentDisplay = document.createElement('p');
+                commentDisplay.innerText = comment.userName + ': ' + comment.comment;
+                commentsDisplay.appendChild(commentDisplay);
+            });
+        }
+
+        function loadComments() {
+            displayComments(); // Cargar los comentarios cuando se carga la página
         }
     </script>
 </head>
@@ -176,17 +194,15 @@
         <h2>Deja tu comentario</h2>
         <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
         <div id="commentSection" style="display: none;">
-            <p>Escribe tu reseña, <span id="userName"></span>:</p>
+            <p>Hola, <span id="userName"></span></p>
             <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
-            <button onclick="submitComment()">Enviar</button>
-        </div>
-        <div id="commentsDisplay">
-            <!-- Aquí se mostrarán los comentarios -->
+            <button onclick="submitComment()">Enviar Comentario</button>
+            <div id="commentsDisplay"></div>
         </div>
     </section>
 
     <footer>
-        <p>&copy; 2024 BOOM BET. Todos los derechos reservados.</p>
+        <p>&copy; 2024 Boom Bet. Todos los derechos reservados.</p>
     </footer>
 </body>
 </html>
