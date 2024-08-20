@@ -1,30 +1,29 @@
-const { initializeApp, applicationDefault } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-
-initializeApp({
-  credential: applicationDefault(),
+const admin = require('firebase-admin');
+admin.initializeApp({
+  credential: admin.credential.applicationDefault(),
+  databaseURL: 'https://casino-6de4f-default-rtdb.firebaseio.com'
 });
 
-const db = getFirestore();
+const db = admin.firestore();
 
 exports.handler = async function(event, context) {
-  const { name, comment } = JSON.parse(event.body);
-
   try {
+    const { name, comment } = JSON.parse(event.body);
+
     await db.collection('comments').add({
-      name,
-      comment,
-      timestamp: new Date(),
+      name: name,
+      comment: comment,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
     });
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Comment saved' }),
+      body: JSON.stringify({ success: true }),
     };
   } catch (error) {
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Error saving comment' }),
+      body: JSON.stringify({ error: error.message }),
     };
   }
 };
