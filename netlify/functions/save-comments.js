@@ -1,35 +1,21 @@
-const admin = require('firebase-admin');
-const serviceAccount = require('..netlify/functions/casinoo.json'); // Cambia a la ruta correcta
-
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: 'https://casino-6de4f-default-rtdb.firebaseio.com' // Cambia a tu URL de base de datos
-  });
-}
-
-const db = admin.firestore();
+require('dotenv').config();
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const dbPath = path.resolve(__dirname, '../data.db');
 
 exports.handler = async (event) => {
-  if (event.httpMethod === 'POST') {
-    try {
-      const { comment, userName } = JSON.parse(event.body);
-      await db.collection('comments').add({ comment, userName, timestamp: admin.firestore.FieldValue.serverTimestamp() });
-      return {
-        statusCode: 200,
-        body: JSON.stringify({ message: 'Comentario guardado con éxito.' })
-      };
-    } catch (error) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: error.message })
-      };
-    }
-  } else {
-    return {
-      statusCode: 405,
-      body: JSON.stringify({ error: 'Método no permitido' })
-    };
-  }
+  const { comment } = JSON.parse(event.body);
+  const db = new sqlite3.Database(dbPath);
+
+  return new Promise((resolve, reject) => {
+    db.run('INSERT INTO comments (comment) VALUES (?)', [comment], function (err) {
+      if (err) {
+        reject({ statusCode: 500, body: 'Error inserting comment' });
+      }
+      db.close();
+      resolve({ statusCode: 200, body: 'Comment saved successfully' });
+    });
+  });
 };
+
 

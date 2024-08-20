@@ -1,27 +1,21 @@
-const admin = require('firebase-admin');
-const serviceAccount = require('.netlify/functions/casinoo.json'); // Cambia a la ruta correcta
+require('dotenv').config();
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const dbPath = path.resolve(__dirname, '../data.db');
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: 'https://casino-6de4f-default-rtdb.firebaseio.com' // Cambia a tu URL de base de datos
+exports.handler = async () => {
+  const db = new sqlite3.Database(dbPath);
+  let comments = [];
+
+  return new Promise((resolve, reject) => {
+    db.all('SELECT * FROM comments', (err, rows) => {
+      if (err) {
+        reject({ statusCode: 500, body: 'Error querying database' });
+      }
+      comments = rows;
+      db.close();
+      resolve({ statusCode: 200, body: JSON.stringify(comments) });
+    });
   });
-}
-
-const db = admin.firestore();
-
-exports.handler = async (event) => {
-  try {
-    const snapshot = await db.collection('comments').orderBy('timestamp', 'desc').get();
-    const comments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    return {
-      statusCode: 200,
-      body: JSON.stringify(comments)
-    };
-  } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message })
-    };
-  }
 };
+
