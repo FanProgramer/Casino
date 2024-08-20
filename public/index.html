@@ -6,7 +6,27 @@
     <title>Casino Online - BOOM BET</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
-    
+
+    <script>"https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"</script>
+    <script>"https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js"</script>
+    <script>// Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDkA3AKF_lAvyp_yWd_4fv-L7f1GL-kYZo",
+            authDomain: "casino-6de4f.firebaseapp.com",
+            databaseURL: "https://casino-6de4f-default-rtdb.firebaseio.com",
+            projectId: "casino-6de4f",
+            storageBucket: "casino-6de4f.appspot.com",
+            messagingSenderId: "46852261275",
+            appId: "1:46852261275:web:e1df4dde8f5eac24484d3e",
+        };
+        
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        // Obtener una referencia a la base de datos
+        const database = firebase.database();
+        
+        </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const slideContainer = document.querySelector('.carousel-slide');
