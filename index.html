@@ -7,11 +7,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     
+    <script src="https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.6/firebase-database.js"></script>
     <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDkA3AKF_lAvyp_yWd_4fv-L7f1GL-kYZo",
+            authDomain: "casino-6de4f.firebaseapp.com",
+            databaseURL: "https://casino-6de4f-default-rtdb.firebaseio.com",
+            projectId: "casino-6de4f",
+            storageBucket: "casino-6de4f.appspot.com",
+            messagingSenderId: "46852261275",
+            appId: "1:46852261275:web:e1df4dde8f5eac24484d3e",
+            measurementId: "G-G19XGKD9TB"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Guardar comentario
+        function saveComment(userName, userComment) {
+            const commentRef = database.ref('comments');
+            commentRef.push({ userName, userComment })
+                .then(() => {
+                    console.log('Comentario guardado');
+                })
+                .catch(error => {
+                    console.error('Error al guardar comentario:', error);
+                });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const slideContainer = document.querySelector('.carousel-slide');
             const slides = document.querySelectorAll('.carousel-slide img');
-    
+
             let counter = 0;
             const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
 
@@ -96,39 +126,22 @@
 
             const form = document.querySelector('form[name="commentForm"]');
             const formData = new FormData(form);
-            fetch('/.netlify/functions/save-comment', {
-                method: 'POST',
-                body: JSON.stringify({
-                    userComment: formData.get('userComment'),
-                    userName: document.getElementById('userName').innerText
-                }),
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(response => response.json())
-              .then(data => {
-                  if (data.message === 'Comment saved successfully') {
-                      alert('Gracias por tu comentario!');
-                      form.reset();
-                      loadComments(); // Cargar comentarios después de guardar
-                  } else {
-                      alert('Hubo un problema al guardar tu comentario.');
-                  }
-              });
+            saveComment(document.getElementById('userName').innerText, formData.get('userComment'));
+            form.reset();
+            loadComments(); // Cargar comentarios después de guardar
         }
 
         function loadComments() {
-            fetch('/.netlify/functions/get-comments')
-                .then(response => response.json())
-                .then(data => {
-                    const commentsDisplay = document.getElementById('commentsDisplay');
-                    commentsDisplay.innerHTML = ''; // Limpiar comentarios existentes
-                    data.forEach(comment => {
-                        const commentDisplay = document.createElement('p');
-                        commentDisplay.innerText = comment.userName + ': ' + comment.userComment;
-                        commentsDisplay.appendChild(commentDisplay);
-                    });
+            database.ref('comments').once('value', snapshot => {
+                const commentsDisplay = document.getElementById('commentsDisplay');
+                commentsDisplay.innerHTML = ''; // Limpiar comentarios existentes
+                snapshot.forEach(childSnapshot => {
+                    const comment = childSnapshot.val();
+                    const commentDisplay = document.createElement('p');
+                    commentDisplay.innerText = comment.userName + ': ' + comment.userComment;
+                    commentsDisplay.appendChild(commentDisplay);
                 });
+            });
         }
 
         document.addEventListener('DOMContentLoaded', loadComments); // Cargar comentarios al cargar la página
@@ -145,16 +158,13 @@
     <section class="services">
         <h2>Nuestros Servicios</h2>
         <p>Disfruta de los mejores Slot, Blackjack, Roulette, Casino en vivo, Apuestas deportivas y mucho más.<br><br>
-
             Reglas para jugar en nuestra plataforma?<br>
             "NINGUNA"<br>
             Jugá sin restricciones!!<br><br>
-            
             Está todo permitido:<br>
             ✓ Sin límite de apuesta<br>
             ✓ Resguardo de fichas<br>
             ✓ Retiros ilimitados<br><br>
-        
             SISTEMA DE BANCA LIBRE.<br><br>
             Somos tu mejor opción!! 🤩
         </p>
@@ -181,39 +191,20 @@
 
     <section class="contact">
         <h2>Contáctanos</h2>
-        <p>¿Interesado en empezar a ganar a lo grande? ¡Contáctanos!</p>
-        <a href="https://wa.link/mw2adr" class="btn whatsapp">WhatsApp</a>
-        <a href="https://facebook.com/tu-pagina" class="btn facebook">Facebook</a>
-        <a href="https://www.instagram.com/casino_boombet4?utm_source=qr&igsh=dmR4NjBiamhvZ2dr" class="btn instagram">Instagram</a>
-    </section>
-
-    <section class="share">
-        <h2>Comparte Nuestra Página</h2>
-        <a href="https://www.facebook.com/sharer/sharer.php?u=https://tu-pagina.com" class="btn facebook">Compartir en Facebook</a>
-        <a href="https://twitter.com/intent/tweet?url=https://tu-pagina.com&text=Echa%20un%20vistazo%20a%20este%20casino%20online!" class="btn twitter">Compartir en Twitter</a>
-    </section>
-
-    <!-- Sección de inicio de sesión y comentarios -->
-    <section class="comments">
-        <h2>Deja tu comentario</h2>
-        <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
+        <p>¿Interesado en nuestros servicios? Déjanos tu comentario:</p>
         <div id="commentSection" style="display: none;">
-            <!-- Formulario para enviar comentarios -->
             <form name="commentForm" onsubmit="submitComment(event)">
-                <p>Escribe tu reseña, <span id="userName"></span>:</p>
-                <textarea name="userComment" required></textarea>
-                <button type="submit">Enviar comentario</button>
+                <textarea name="userComment" rows="4" placeholder="Escribe tu comentario aquí..." required></textarea>
+                <button type="submit">Enviar Comentario</button>
             </form>
-
-            <!-- Área para mostrar los comentarios -->
             <div id="commentsDisplay"></div>
         </div>
+        <button onclick="loginWithFacebook()">Iniciar sesión con Facebook</button>
+        <p id="userName"></p>
     </section>
 
     <footer>
-        <p>&copy; 2024 Casino Online - BOOM BET. Todos los derechos reservados.</p>
+        <p>&copy; 2024 Boom Bet. Todos los derechos reservados.</p>
     </footer>
-
-    <script src="js/main.js"></script>
 </body>
 </html>
