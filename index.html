@@ -6,64 +6,25 @@
     <title>Casino Online - BOOM BET</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
-
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js"></script>
     
     <script>
-        // Configuración de Firebase
-        const firebaseConfig = {
-            apiKey: "TU_API_KEY",
-            authDomain: "TU_AUTH_DOMAIN",
-            databaseURL: "TU_DATABASE_URL",
-            projectId: "TU_PROJECT_ID",
-            storageBucket: "TU_STORAGE_BUCKET",
-            messagingSenderId: "TU_MESSAGING_SENDER_ID",
-            appId: "TU_APP_ID"
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            const slideContainer = document.querySelector('.carousel-slide');
+            const slides = document.querySelectorAll('.carousel-slide img');
+    
+            let counter = 0;
+            const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
 
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Función para cargar los comentarios desde Firebase
-        function loadComments() {
-            const commentsRef = database.ref('comments');
-            commentsRef.on('value', (snapshot) => {
-                const commentsData = snapshot.val();
-                const commentsDisplay = document.getElementById('commentsDisplay');
-                commentsDisplay.innerHTML = ''; // Limpiar comentarios anteriores
-
-                for (let id in commentsData) {
-                    const comment = commentsData[id];
-                    const commentElement = document.createElement('p');
-                    commentElement.innerText = comment.userName + ': ' + comment.comment;
-                    commentsDisplay.appendChild(commentElement);
+            function moveSlide() {
+                counter++;
+                if (counter >= slides.length / 4) {
+                    counter = 0; // Vuelve al inicio cuando llegue al final
                 }
-            });
-        }
-
-        // Función para enviar un comentario a Firebase
-        function submitComment() {
-            const comment = document.getElementById('userComment').value;
-            const userName = document.getElementById('userName').innerText;
-            
-            if (comment) {
-                const commentsRef = database.ref('comments');
-                const newCommentRef = commentsRef.push();
-                newCommentRef.set({
-                    userName: userName,
-                    comment: comment
-                });
-
-                alert('Gracias por tu comentario, ' + userName + '!');
-
-                // Limpia el textarea
-                document.getElementById('userComment').value = '';
-            } else {
-                alert('Por favor escribe un comentario antes de enviarlo.');
+                slideContainer.style.transform = 'translateX(' + (-size * counter) + 'px)';
             }
-        }
+
+            setInterval(moveSlide, 5000); // Cambia cada 5 segundos
+        });
 
         // Verificar si el usuario ya ha iniciado sesión
         function checkLoginState() {
@@ -77,7 +38,6 @@
                         FB.api('/me', { fields: 'name, email' }, function(response) {
                             document.getElementById('userName').innerText = response.name;
                             document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                            loadComments(); // Cargar comentarios al iniciar sesión
                         });
                     } else {
                         console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
@@ -124,15 +84,33 @@
                         console.log('Bienvenido, ' + response.name + '.');
                         document.getElementById('userName').innerText = response.name;
                         document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                        loadComments(); // Cargar comentarios al iniciar sesión
                     });
                 } else {
                     console.log('Usuario canceló el login o no autorizó.');
                 }
             }, {scope: 'public_profile,email'});
         }
+
+        function submitComment() {
+            const comment = document.getElementById('userComment').value;
+            const userName = document.getElementById('userName').innerText;
+            
+            if (comment) {
+                // Aquí podrías enviar el comentario a tu servidor o almacenarlo
+                alert('Gracias por tu comentario, ' + userName + '!');
+
+                // Opcional: Muestra el comentario en la página
+                const commentDisplay = document.createElement('p');
+                commentDisplay.innerText = userName + ': ' + comment;
+                document.getElementById('commentsDisplay').appendChild(commentDisplay);
+                
+                // Limpia el textarea
+                document.getElementById('userComment').value = '';
+            } else {
+                alert('Por favor escribe un comentario antes de enviarlo.');
+            }
+        }
     </script>
-    
 </head>
 <body>
     <header>
