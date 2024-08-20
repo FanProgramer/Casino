@@ -1,31 +1,30 @@
-// save-comments.js
-function submitComment() {
-    const comment = document.getElementById('userComment').value;
-    const userName = document.getElementById('userName').innerText;
+const { initializeApp, applicationDefault } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
-    if (comment) {
-        // Guarda el comentario en Firebase
-        firebase.firestore().collection('comments').add({
-            name: userName,
-            comment: comment,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp() // Marca de tiempo del servidor
-        })
-        .then(() => {
-            console.log("Comentario guardado con éxito");
-            alert('Gracias por tu comentario, ' + userName + '!');
+initializeApp({
+  credential: applicationDefault(),
+});
 
-            // Opcional: Muestra el comentario en la página
-            const commentDisplay = document.createElement('p');
-            commentDisplay.innerText = userName + ': ' + comment;
-            document.getElementById('commentsDisplay').appendChild(commentDisplay);
+const db = getFirestore();
 
-            // Limpia el textarea
-            document.getElementById('userComment').value = '';
-        })
-        .catch((error) => {
-            console.error("Error al guardar el comentario: ", error);
-        });
-    } else {
-        alert('Por favor escribe un comentario antes de enviarlo.');
-    }
-}
+exports.handler = async function(event, context) {
+  const { name, comment } = JSON.parse(event.body);
+
+  try {
+    await db.collection('comments').add({
+      name,
+      comment,
+      timestamp: new Date(),
+    });
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Comment saved' }),
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Error saving comment' }),
+    };
+  }
+};

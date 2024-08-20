@@ -1,17 +1,28 @@
-// get-comments.js
-document.addEventListener('DOMContentLoaded', function() {
-    const db = firebase.firestore();
-    const commentsDisplay = document.getElementById('commentsDisplay');
+const { initializeApp, applicationDefault } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
-    // Obtener y mostrar comentarios en tiempo real
-    db.collection('comments').orderBy('timestamp', 'desc').onSnapshot((snapshot) => {
-        commentsDisplay.innerHTML = ''; // Limpiar comentarios anteriores
-
-        snapshot.forEach((doc) => {
-            const commentData = doc.data();
-            const commentElement = document.createElement('p');
-            commentElement.textContent = `${commentData.name}: ${commentData.comment}`;
-            commentsDisplay.appendChild(commentElement);
-        });
-    });
+initializeApp({
+  credential: applicationDefault(),
 });
+
+const db = getFirestore();
+
+exports.handler = async function(event, context) {
+  try {
+    const snapshot = await db.collection('comments').orderBy('timestamp', 'desc').get();
+    const comments = snapshot.docs.map(doc => doc.data());
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify(comments),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+  } catch (error) {
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Error fetching comments' }),
+    };
+  }
+};
