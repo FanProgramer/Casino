@@ -170,15 +170,14 @@
         <a href="https://twitter.com/intent/tweet?url=https://tu-pagina.com&text=Echa%20un%20vistazo%20a%20este%20casino%20online!" class="btn twitter">Compartir en Twitter</a>
     </section>
 
-    <section class="comment-section">
-        <div id="commentSection" style="display:none;">
-            <h2>Comentarios</h2>
-            <p>¡Deja tu comentario!</p>
-            <textarea id="userComment" rows="4" cols="50" placeholder="Escribe tu comentario aquí..."></textarea><br>
+    <section id="commentSection">
+        <h2>Deja tu Comentario</h2>
+        <button id="loginButton" class="btn facebook">Inicia sesión con Facebook</button>
+        <div id="commentForm" style="display: none;">
+            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
             <button id="submitCommentButton">Enviar Comentario</button>
-            <div id="commentsDisplay"></div>
         </div>
-        <button id="loginButton" class="btn facebook">Iniciar Sesión con Facebook</button>
+        <div id="commentsDisplay"></div>
     </section>
 
     <footer>
