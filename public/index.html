@@ -15,6 +15,27 @@
             const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8rFdyQ2t9Nsa553qBqCmYrOm7vQ';  // Reemplaza 'tu_anon_key_aqui' con tu Anon Key de Supabase
             const supabase = createClient(supabaseUrl, supabaseKey);
 
+            // Cargar el SDK de Facebook
+            window.fbAsyncInit = function() {
+                FB.init({
+                    appId      : '499168329477257', // Reemplaza con tu App ID
+                    cookie     : true,
+                    xfbml      : true,
+                    version    : 'v17.0'
+                });
+                FB.AppEvents.logPageView();   
+                checkLoginState();  // Verificar el estado de la sesión al cargar la página
+            };
+
+            // Asynchronous function to load the SDK of Facebook
+            (function(d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) {return;}
+                js = d.createElement(s); js.id = id;
+                js.src = "https://connect.facebook.net/en_US/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
+
             function checkLoginState() {
                 const accessToken = localStorage.getItem('fbAccessToken');
                 const userID = localStorage.getItem('fbUserID');
@@ -38,17 +59,6 @@
                     console.log('El usuario no ha iniciado sesión.');
                 }
             }
-
-            window.fbAsyncInit = function() {
-                FB.init({
-                    appId      : '499168329477257',  // Reemplaza con tu App ID
-                    cookie     : true,
-                    xfbml      : true,
-                    version    : 'v17.0'
-                });
-                FB.AppEvents.logPageView();   
-                checkLoginState();  // Verificar el estado de la sesión al cargar la página
-            };
 
             function loginWithFacebook() {
                 FB.login(function(response) {
@@ -99,7 +109,7 @@
                 if (error) {
                     console.error('Error al cargar los comentarios:', error);
                 } else {
-                    const commentList = document.getElementById('commentList');
+                    const commentList = document.getElementById('commentsDisplay');
                     commentList.innerHTML = ''; // Limpiar la lista de comentarios
                     comments.forEach(comment => {
                         const listItem = document.createElement('li');
