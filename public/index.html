@@ -7,18 +7,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
-    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Configura Supabase
-            const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co'; // Reemplaza con tu URL
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3lmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8FdyQ2t9Nsa553qBqCmYrOm7vQ'; // Reemplaza con tu clave API
-            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-            // Configuración del carrusel
             const slideContainer = document.querySelector('.carousel-slide');
             const slides = document.querySelectorAll('.carousel-slide img');
+    
             let counter = 0;
             const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
 
@@ -31,121 +24,92 @@
             }
 
             setInterval(moveSlide, 5000); // Cambia cada 5 segundos
+        });
 
-            // Muestra los comentarios al cargar la página
-            async function loadComments() {
-                const { data: comments, error } = await supabase
-                    .from('comments')
-                    .select('*');
-                
-                if (error) {
-                    console.error('Error fetching comments:', error);
-                } else {
-                    const commentsDisplay = document.getElementById('commentsDisplay');
-                    comments.forEach(comment => {
-                        const commentDisplay = document.createElement('p');
-                        commentDisplay.innerText = `${comment.user_name}: ${comment.comment}`;
-                        commentsDisplay.appendChild(commentDisplay);
-                    });
-                }
-            }
-            loadComments();
+        // Verificar si el usuario ya ha iniciado sesión
+        function checkLoginState() {
+            const accessToken = localStorage.getItem('fbAccessToken');
+            const userID = localStorage.getItem('fbUserID');
 
-            // Verificar si el usuario ya ha iniciado sesión
-            function checkLoginState() {
-                const accessToken = localStorage.getItem('fbAccessToken');
-                const userID = localStorage.getItem('fbUserID');
-
-                if (accessToken) {
-                    FB.getLoginStatus(function(response) {
-                        if (response.status === 'connected' && response.authResponse.userID === userID) {
-                            console.log('El usuario ya ha iniciado sesión.');
-                            FB.api('/me', { fields: 'name, email' }, function(response) {
-                                document.getElementById('userName').innerText = response.name;
-                                document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                            });
-                        } else {
-                            console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
-                            localStorage.removeItem('fbAccessToken');
-                            localStorage.removeItem('fbUserID');
-                        }
-                    });
-                } else {
-                    console.log('El usuario no ha iniciado sesión.');
-                }
-            }
-
-            // Facebook SDK
-            window.fbAsyncInit = function() {
-                FB.init({
-                    appId      : '499168329477257',  // Reemplaza con tu App ID
-                    cookie     : true,
-                    xfbml      : true,
-                    version    : 'v17.0'
-                });
-                FB.AppEvents.logPageView();   
-                checkLoginState();  // Verificar el estado de la sesión al cargar la página
-            };
-
-            (function(d, s, id){
-                var js, fjs = d.getElementsByTagName(s)[0];
-                if (d.getElementById(id)) {return;}
-                js = d.createElement(s); js.id = id;
-                js.src = "https://connect.facebook.net/en_US/sdk.js";
-                fjs.parentNode.insertBefore(js, fjs);
-            }(document, 'script', 'facebook-jssdk'));
-
-            function loginWithFacebook() {
-                FB.login(function(response) {
-                    if (response.authResponse) {
-                        const accessToken = response.authResponse.accessToken;
-                        const userID = response.authResponse.userID;
-
-                        // Guarda el token en el almacenamiento local
-                        localStorage.setItem('fbAccessToken', accessToken);
-                        localStorage.setItem('fbUserID', userID);
-
+            if (accessToken) {
+                FB.getLoginStatus(function(response) {
+                    if (response.status === 'connected' && response.authResponse.userID === userID) {
+                        console.log('El usuario ya ha iniciado sesión.');
                         FB.api('/me', { fields: 'name, email' }, function(response) {
-                            console.log('Bienvenido, ' + response.name + '.');
                             document.getElementById('userName').innerText = response.name;
                             document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
                         });
                     } else {
-                        console.log('Usuario canceló el login o no autorizó.');
+                        console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
+                        localStorage.removeItem('fbAccessToken');
+                        localStorage.removeItem('fbUserID');
                     }
-                }, {scope: 'public_profile,email'});
+                });
+            } else {
+                console.log('El usuario no ha iniciado sesión.');
             }
+        }
 
-            async function submitComment() {
-                const comment = document.getElementById('userComment').value;
-                const userName = document.getElementById('userName').innerText;
-                
-                if (comment) {
-                    const { data, error } = await supabase
-                        .from('comments')
-                        .insert([{ user_name: userName, comment: comment }]);
+        // Facebook SDK
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId      : '499168329477257',  // Reemplaza con tu App ID
+                cookie     : true,
+                xfbml      : true,
+                version    : 'v17.0'
+            });
+            FB.AppEvents.logPageView();   
+            checkLoginState();  // Verificar el estado de la sesión al cargar la página
+        };
 
-                    if (error) {
-                        console.error('Error inserting comment:', error);
-                    } else {
-                        alert('Gracias por tu comentario!');
-                        // Opcional: Muestra el comentario en la página
-                        const commentDisplay = document.createElement('p');
-                        commentDisplay.innerText = `${userName}: ${comment}`;
-                        document.getElementById('commentsDisplay').appendChild(commentDisplay);
-                        
-                        // Limpia el textarea
-                        document.getElementById('userComment').value = '';
-                    }
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        function loginWithFacebook() {
+            FB.login(function(response) {
+                if (response.authResponse) {
+                    const accessToken = response.authResponse.accessToken;
+                    const userID = response.authResponse.userID;
+
+                    // Guarda el token en el almacenamiento local
+                    localStorage.setItem('fbAccessToken', accessToken);
+                    localStorage.setItem('fbUserID', userID);
+
+                    FB.api('/me', { fields: 'name, email' }, function(response) {
+                        console.log('Bienvenido, ' + response.name + '.');
+                        document.getElementById('userName').innerText = response.name;
+                        document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+                    });
                 } else {
-                    alert('Por favor escribe un comentario antes de enviarlo.');
+                    console.log('Usuario canceló el login o no autorizó.');
                 }
-            }
+            }, {scope: 'public_profile,email'});
+        }
 
-            // Exponer funciones al ámbito global
-            window.loginWithFacebook = loginWithFacebook;
-            window.submitComment = submitComment;
-        });
+        function submitComment() {
+            const comment = document.getElementById('userComment').value;
+            const userName = document.getElementById('userName').innerText;
+            
+            if (comment) {
+                // Aquí podrías enviar el comentario a tu servidor o almacenarlo
+                alert('Gracias por tu comentario, ' + userName + '!');
+
+                // Opcional: Muestra el comentario en la página
+                const commentDisplay = document.createElement('p');
+                commentDisplay.innerText = userName + ': ' + comment;
+                document.getElementById('commentsDisplay').appendChild(commentDisplay);
+                
+                // Limpia el textarea
+                document.getElementById('userComment').value = '';
+            } else {
+                alert('Por favor escribe un comentario antes de enviarlo.');
+            }
+        }
     </script>
 </head>
 <body>
@@ -203,17 +167,26 @@
 
     <section class="share">
         <h2>Comparte Nuestra Página</h2>
-        <a href="https://www.facebook.com/sharer/sharer.php?u=https://tu-pagina.com" class="btn facebook-share">Compartir en Facebook</a>
-        <a href="https://twitter.com/intent/tweet?url=https://tu-pagina.com" class="btn twitter-share">Compartir en Twitter</a>
-        <a href="https://www.instagram.com/?url=https://tu-pagina.com" class="btn instagram-share">Compartir en Instagram</a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://tu-pagina.com" class="btn facebook">Compartir en Facebook</a>
+        <a href="https://twitter.com/intent/tweet?url=https://tu-pagina.com&text=Echa%20un%20vistazo%20a%20este%20casino%20online!" class="btn twitter">Compartir en Twitter</a>
     </section>
 
-    <section id="commentSection" style="display: none;">
-        <h2>Deja tu Comentario</h2>
-        <p id="userName"></p>
-        <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
-        <button onclick="submitComment()">Enviar Comentario</button>
-        <div id="commentsDisplay"></div>
+    <!-- Sección de inicio de sesión y comentarios -->
+    <section class="comments">
+        <h2>Deja tu comentario</h2>
+        <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
+        <div id="commentSection" style="display: none;">
+            <p>Escribe tu reseña, <span id="userName"></span>:</p>
+            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
+            <button onclick="submitComment()">Enviar</button>
+        </div>
+        <div id="commentsDisplay">
+            <!-- Aquí se mostrarán los comentarios -->
+        </div>
     </section>
+
+    <footer>
+        <p>&copy; 2024 BOOM BET. Todos los derechos reservados.</p>
+    </footer>
 </body>
 </html>
