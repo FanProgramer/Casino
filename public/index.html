@@ -7,6 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 
+    <!-- Agrega la inicialización de Supabase al principio -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
     <script>
         // Configuración de Supabase
@@ -47,15 +48,23 @@
             }
         }
 
-        // Función para mostrar los comentarios
+        // Función para mostrar los comentarios en ambas secciones
         function displayComments(comments) {
             const commentsDisplay = document.getElementById('commentsDisplay');
-            commentsDisplay.innerHTML = ''; // Limpia los comentarios actuales
+            const existingCommentsDisplay = document.getElementById('existingCommentsDisplay');
+            
+            commentsDisplay.innerHTML = ''; // Limpia los comentarios actuales en la sección de contacto
+            existingCommentsDisplay.innerHTML = ''; // Limpia los comentarios en la sección "Algunos de los comentarios"
 
             comments.forEach(commentData => {
                 const commentDisplay = document.createElement('p');
                 commentDisplay.innerText = `${commentData.user_name}: ${commentData.comment}`;
+                
+                // Muestra el comentario en la sección de contacto
                 commentsDisplay.appendChild(commentDisplay);
+
+                // Muestra el comentario en la sección "Algunos de los comentarios"
+                existingCommentsDisplay.appendChild(commentDisplay.cloneNode(true));
             });
         }
 
@@ -81,6 +90,22 @@
                 }
             } else {
                 alert('Por favor escribe un comentario antes de enviarlo.');
+            }
+        }
+
+        // Función para iniciar sesión con Facebook (simple ejemplo)
+        async function loginWithFacebook() {
+            try {
+                const { user, session, error } = await supabase.auth.signInWithOAuth({
+                    provider: 'facebook',
+                });
+
+                if (error) throw error;
+
+                document.getElementById('userName').innerText = user.email || 'Usuario de Facebook';
+                document.getElementById('commentSection').style.display = 'block';
+            } catch (error) {
+                console.error('Error en el inicio de sesión con Facebook:', error);
             }
         }
     </script>
@@ -138,10 +163,12 @@
         </div>
         <p id="userName"></p>
     </section>
+
     <section class="some-comments">
         <h2>Algunos de los comentarios</h2>
         <div id="existingCommentsDisplay"></div>
     </section>
+
     <footer>
         <p>&copy; 2024 Boom Bet. Todos los derechos reservados.</p>
     </footer>
