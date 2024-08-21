@@ -8,14 +8,11 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script>
-        // Inicializa Supabase globalmente
-        const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co'; // Reemplaza con tu URL de Supabase
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3lmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8FdyQ2t9Nsa553qBqCmYrOm7vQ'; // Reemplaza con tu clave de Supabase
-        let supabase;
-
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializa Supabase aquí
-            supabase = supabase.createClient(supabaseUrl, supabaseKey);
+            // Inicializa Supabase globalmente
+            const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co'; // Reemplaza con tu URL de Supabase
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3lmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8FdyQ2t9Nsa553qBqCmYrOm7vQ'; // Reemplaza con tu clave de Supabase
+            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
             const slideContainer = document.querySelector('.carousel-slide');
             const slides = document.querySelectorAll('.carousel-slide img');
@@ -49,18 +46,17 @@
 
             loadComments();
 
+            // Inicialización del SDK de Facebook
             window.fbAsyncInit = function() {
-                FB.init({
-                    appId      : '499168329477257', // Reemplaza con tu ID de aplicación de Facebook
-                    cookie     : true,
-                    xfbml      : true,
-                    version    : 'v17.0' // Usa la versión más reciente del SDK
-                });
-
-                FB.getLoginStatus(function(response) {
-                    statusChangeCallback(response);
-                });
-            };
+            FB.init({
+                appId      : '499168329477257',  // Reemplaza con tu App ID
+                cookie     : true,
+                xfbml      : true,
+                version    : 'v17.0'
+            });
+            FB.AppEvents.logPageView();
+            checkLoginState();  // Verificar el estado de la sesión al cargar la página
+        };
 
             (function(d, s, id) {
                 var js, fjs = d.getElementsByTagName(s)[0];
@@ -84,7 +80,12 @@
 
             function loginWithFacebook() {
                 FB.login(function(response) {
-                    statusChangeCallback(response);
+                    if (response.authResponse) {
+                        // Usuario autenticado
+                        statusChangeCallback(response);
+                    } else {
+                        console.log('Usuario canceló el inicio de sesión.');
+                    }
                 }, {scope: 'public_profile,email'});
             }
 
@@ -167,23 +168,21 @@
         <a href="https://www.instagram.com/casino_boombet4?utm_source=qr&igsh=dmR4NjBiamhvZ2dr" class="btn instagram">Instagram</a>
     </section>
 
-    <section class="share">
-        <h2>Comparte Nuestra Página</h2>
-        <a href="https://www.facebook.com/sharer/sharer.php?u=https://tu-pagina.com" class="btn facebook">Compartir en Facebook</a>
-        <a href="https://twitter.com/intent/tweet?url=https://tu-pagina.com&text=Echa%20un%20vistazo%20a%20este%20casino%20online!" class="btn twitter">Compartir en Twitter</a>
-    </section>
-
-    <section id="commentSection">
+    <section class="comments">
         <h2>Comentarios</h2>
-        <div id="commentsDisplay"></div>
-        <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
-        <button id="submitCommentButton">Enviar Comentario</button>
+        <button onclick="loginWithFacebook()">Iniciar sesión con Facebook</button>
+        <div id="commentSection" style="display: none;">
+            <h3>Comentarios</h3>
+            <textarea id="userComment" placeholder="Escribe tu comentario aquí"></textarea>
+            <button onclick="submitComment()">Enviar Comentario</button>
+            <div id="commentsDisplay"></div>
+        </div>
+        <p id="userName"></p>
     </section>
-    
-    <button id="loginButton" class="btn facebook">Iniciar sesión con Facebook</button>
 
     <footer>
         <p>&copy; 2024 Boom Bet - Todos los derechos reservados.</p>
     </footer>
 </body>
 </html>
+
