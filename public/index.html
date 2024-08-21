@@ -7,14 +7,82 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 
-    <!-- Agrega la inicialización de Supabase al principio -->
+    <!-- Primero, carga la librería de Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
+    
+    <!-- Luego, inicializa Supabase antes de cualquier otra cosa -->
     <script>
         // Configuración de Supabase
-        const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co'; // Reemplaza con tu URL de Supabase
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8rFdyQ2t9Nsa553qBqCmYrOm7vQ'; // Reemplaza con tu clave de API pública
+        const supabaseUrl = 'https://your-project.supabase.co'; // Reemplaza con tu URL de Supabase
+        const supabaseKey = 'your-public-anon-key'; // Reemplaza con tu clave de API pública
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
+</head>
+<body onload="loadComments()">
+    <header>
+        <h1>Bienvenido a Boom Bet</h1>
+        <h3>Casino Online 24hs.</h3>
+        <p>Sitio de entretenimiento donde vas a poder apostar, ganar y retirar las veces que desees, ya que contamos con un sistema de banca libre.</p>
+        <img src="images/casino-banner.jpg" alt="Casino Banner">
+    </header>
 
+    <section class="services">
+        <h2>Nuestros Servicios</h2>
+        <p>Disfruta de los mejores Slot, Blackjack, Roulette, Casino en vivo, Apuestas deportivas y mucho más.<br><br>
+            Reglas para jugar en nuestra plataforma?<br>
+            "NINGUNA"<br>
+            Jugá sin restricciones!!<br><br>
+            Está todo permitido:<br>
+            ✓ Sin límite de apuesta<br>
+            ✓ Resguardo de fichas<br>
+            ✓ Retiros ilimitados<br><br>
+            SISTEMA DE BANCA LIBRE.<br><br>
+            Somos tu mejor opción!! 🤩
+        </p>
+        <a href="https://Bet91.club" class="btn" style="background-color: #ffcc00; color: #000;">Ir al Casino</a>
+    </section>
+
+    <section class="gallery-carousel">
+        <h2>Pagos y Ganancias</h2>
+        <p>Mira algunos de los pagos y ganancias recientes de nuestros usuarios:</p>
+        <div class="carousel-container">
+            <div class="carousel-slide">
+                <img src="images/pago1.jpg" alt="Pago 1">
+                <img src="images/pago2.jpg" alt="Pago 2">
+                <img src "images/pago3.jpg" alt="Pago 3">
+                <img src="images/pago4.jpg" alt="Pago 4">
+                <img src="images/pago5.jpg" alt="Pago 5">
+                <img src="images/pago6.jpg" alt="Pago 6">
+                <img src="images/pago7.jpg" alt="Pago 7">
+                <img src="images/pago8.jpg" alt="Pago 8">
+                <!-- Puedes agregar más imágenes si es necesario -->
+            </div>
+        </div>
+    </section>
+
+    <section class="contact">
+        <h2>Contáctanos</h2>
+        <p>¿Interesado en empezar a ganar dinero con nosotros? ¡No dudes en contactarnos!</p>
+        <button onclick="loginWithFacebook()">Iniciar Sesión con Facebook</button>
+        <div id="commentSection" style="display: none;">
+            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea><br>
+            <button onclick="submitComment()">Enviar Comentario</button>
+            <div id="commentsDisplay"></div>
+        </div>
+        <p id="userName"></p>
+    </section>
+
+    <section class="some-comments">
+        <h2>Algunos de los comentarios</h2>
+        <div id="existingCommentsDisplay"></div>
+    </section>
+
+    <footer>
+        <p>&copy; 2024 Boom Bet. Todos los derechos reservados.</p>
+    </footer>
+
+    <!-- Coloca las funciones después de la inicialización de Supabase -->
+    <script>
         // Función para obtener comentarios
         async function getComments() {
             try {
@@ -109,68 +177,5 @@
             }
         }
     </script>
-</head>
-<body onload="loadComments()">
-    <header>
-        <h1>Bienvenido a Boom Bet</h1>
-        <h3>Casino Online 24hs.</h3>
-        <p>Sitio de entretenimiento donde vas a poder apostar, ganar y retirar las veces que desees, ya que contamos con un sistema de banca libre.</p>
-        <img src="images/casino-banner.jpg" alt="Casino Banner">
-    </header>
-
-    <section class="services">
-        <h2>Nuestros Servicios</h2>
-        <p>Disfruta de los mejores Slot, Blackjack, Roulette, Casino en vivo, Apuestas deportivas y mucho más.<br><br>
-            Reglas para jugar en nuestra plataforma?<br>
-            "NINGUNA"<br>
-            Jugá sin restricciones!!<br><br>
-            Está todo permitido:<br>
-            ✓ Sin límite de apuesta<br>
-            ✓ Resguardo de fichas<br>
-            ✓ Retiros ilimitados<br><br>
-            SISTEMA DE BANCA LIBRE.<br><br>
-            Somos tu mejor opción!! 🤩
-        </p>
-        <a href="https://Bet91.club" class="btn" style="background-color: #ffcc00; color: #000;">Ir al Casino</a>
-    </section>
-
-    <section class="gallery-carousel">
-        <h2>Pagos y Ganancias</h2>
-        <p>Mira algunos de los pagos y ganancias recientes de nuestros usuarios:</p>
-        <div class="carousel-container">
-            <div class="carousel-slide">
-                <img src="images/pago1.jpg" alt="Pago 1">
-                <img src="images/pago2.jpg" alt="Pago 2">
-                <img src="images/pago3.jpg" alt="Pago 3">
-                <img src="images/pago4.jpg" alt="Pago 4">
-                <img src="images/pago5.jpg" alt="Pago 5">
-                <img src="images/pago6.jpg" alt="Pago 6">
-                <img src="images/pago7.jpg" alt="Pago 7">
-                <img src="images/pago8.jpg" alt="Pago 8">
-                <!-- Puedes agregar más imágenes si es necesario -->
-            </div>
-        </div>
-    </section>
-
-    <section class="contact">
-        <h2>Contáctanos</h2>
-        <p>¿Interesado en empezar a ganar dinero con nosotros? ¡No dudes en contactarnos!</p>
-        <button onclick="loginWithFacebook()">Iniciar Sesión con Facebook</button>
-        <div id="commentSection" style="display: none;">
-            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea><br>
-            <button onclick="submitComment()">Enviar Comentario</button>
-            <div id="commentsDisplay"></div>
-        </div>
-        <p id="userName"></p>
-    </section>
-
-    <section class="some-comments">
-        <h2>Algunos de los comentarios</h2>
-        <div id="existingCommentsDisplay"></div>
-    </section>
-
-    <footer>
-        <p>&copy; 2024 Boom Bet. Todos los derechos reservados.</p>
-    </footer>
 </body>
 </html>
