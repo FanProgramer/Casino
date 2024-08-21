@@ -1,18 +1,13 @@
 {
-  "name": "casino3",
+  "name": "tu-proyecto",
   "version": "1.0.0",
+  "description": "Descripción de tu proyecto",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.1",
-    "dotenv": "^16.4.5",
-    "firebase-admin": "^12.3.1",
-    "sqlite3": "^5.1.7"
+    "@supabase/supabase-js": "^2.0.0",
+    "fb-sdk": "^v17.0"
   }
 }
