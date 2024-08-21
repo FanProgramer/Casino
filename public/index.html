@@ -7,138 +7,85 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/supabase.min.js"></script>
     <script>
-        // Configuración de Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDkA3AKF_lAvyp_yWd_4fv-L7f1GL-kYZo",
-            authDomain: "casino-6de4f.firebaseapp.com",
-            databaseURL: "https://casino-6de4f-default-rtdb.firebaseio.com",
-            projectId: "casino-6de4f",
-            storageBucket: "casino-6de4f.appspot.com",
-            messagingSenderId: "46852261275",
-            appId: "1:46852261275:web:e1df4dde8f5eac24484d3e",
-        };
-        
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-    </script>
-    <script>
-        // Cargar el SDK de Facebook
-        window.fbAsyncInit = function() {
-            FB.init({
-                appId      : '499168329477257',  // Reemplaza con tu App ID
-                cookie     : true,
-                xfbml      : true,
-                version    : 'v17.0'
-            });
-            FB.AppEvents.logPageView();
-            checkLoginState();  // Verificar el estado de la sesión al cargar la página
-        };
+        // Configuración de Supabase
+        const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co'; // Reemplaza con tu URL de Supabase
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8rFdyQ2t9Nsa553qBqCmYrOm7vQ'; // Reemplaza con tu clave de API pública
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        (function(d, s, id){
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) {return;}
-            js = d.createElement(s); js.id = id;
-            js.src = "https://connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
+        // Función para obtener comentarios
+        async function getComments() {
+            try {
+                const { data: comments, error } = await supabase
+                    .from('comments')
+                    .select('*');
 
-        function checkLoginState() {
-            const accessToken = localStorage.getItem('fbAccessToken');
-            const userID = localStorage.getItem('fbUserID');
+                if (error) throw error;
 
-            if (accessToken) {
-                FB.getLoginStatus(function(response) {
-                    if (response.status === 'connected' && response.authResponse.userID === userID) {
-                        console.log('El usuario ya ha iniciado sesión.');
-                        FB.api('/me', { fields: 'name, email' }, function(response) {
-                            document.getElementById('userName').innerText = response.name;
-                            document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                        });
-                    } else {
-                        console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
-                        localStorage.removeItem('fbAccessToken');
-                        localStorage.removeItem('fbUserID');
-                    }
-                });
-            } else {
-                console.log('El usuario no ha iniciado sesión.');
-                document.getElementById('commentSection').style.display = 'none'; // Oculta la sección de comentarios
+                return comments;
+            } catch (error) {
+                console.error('Error al obtener comentarios:', error);
+                return [];
             }
-            loadComments(); // Cargar comentarios sin necesidad de iniciar sesión
         }
 
-        function loginWithFacebook() {
-            FB.login(function(response) {
-                if (response.authResponse) {
-                    const accessToken = response.authResponse.accessToken;
-                    const userID = response.authResponse.userID;
+        // Función para guardar un comentario
+        async function saveComment(comment, userName) {
+            try {
+                const { error } = await supabase
+                    .from('comments')
+                    .insert([{ user_name: userName, comment }]);
 
-                    // Guarda el token en el almacenamiento local
-                    localStorage.setItem('fbAccessToken', accessToken);
-                    localStorage.setItem('fbUserID', userID);
+                if (error) throw error;
 
-                    FB.api('/me', { fields: 'name, email' }, function(response) {
-                        console.log('Bienvenido, ' + response.name + '.');
-                        document.getElementById('userName').innerText = response.name;
-                        document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                    });
-                } else {
-                    console.log('Usuario canceló el login o no autorizó.');
-                }
-            }, {scope: 'public_profile,email'});
+                console.log('Comentario guardado en Supabase.');
+                return true;
+            } catch (error) {
+                console.error('Error al guardar el comentario en Supabase:', error);
+                return false;
+            }
         }
 
-        function submitComment() {
+        // Función para mostrar los comentarios
+        function displayComments(comments) {
+            const commentsDisplay = document.getElementById('commentsDisplay');
+            commentsDisplay.innerHTML = ''; // Limpia los comentarios actuales
+
+            comments.forEach(commentData => {
+                const commentDisplay = document.createElement('p');
+                commentDisplay.innerText = `${commentData.user_name}: ${commentData.comment}`;
+                commentsDisplay.appendChild(commentDisplay);
+            });
+        }
+
+        // Función para cargar comentarios y mostrar la sección de comentarios
+        async function loadComments() {
+            const comments = await getComments();
+            displayComments(comments);
+        }
+
+        // Función para manejar el envío de comentarios
+        async function submitComment() {
             const comment = document.getElementById('userComment').value;
             const userName = document.getElementById('userName').innerText;
-            
+
             if (comment) {
-                // Guardar comentario en Firebase Realtime Database
-                database.ref('comments').push({
-                    userName: userName,
-                    comment: comment
-                }).then(() => {
-                    console.log('Comentario guardado en Firebase.');
-                    // Muestra el comentario en la página
-                    displayComments();
-                    // Limpia el textarea
-                    document.getElementById('userComment').value = '';
-                }).catch((error) => {
-                    console.error('Error al guardar el comentario en Firebase: ', error);
-                });
+                const success = await saveComment(comment, userName);
+
+                if (success) {
+                    loadComments(); // Actualizar la lista de comentarios
+                    document.getElementById('userComment').value = ''; // Limpiar el textarea
+                } else {
+                    alert('Hubo un problema al guardar el comentario.');
+                }
             } else {
                 alert('Por favor escribe un comentario antes de enviarlo.');
             }
         }
-
-        function displayComments() {
-            const commentsDisplay = document.getElementById('commentsDisplay');
-            commentsDisplay.innerHTML = ''; // Limpia los comentarios actuales
-
-            // Obtener los comentarios de Firebase Realtime Database
-            database.ref('comments').once('value').then((snapshot) => {
-                snapshot.forEach((childSnapshot) => {
-                    const commentData = childSnapshot.val();
-                    const commentDisplay = document.createElement('p');
-                    commentDisplay.innerText = commentData.userName + ': ' + commentData.comment;
-                    commentsDisplay.appendChild(commentDisplay);
-                });
-            }).catch((error) => {
-                console.error('Error al cargar los comentarios de Firebase: ', error);
-            });
-        }
-
-        function loadComments() {
-            displayComments(); // Cargar los comentarios cuando se carga la página
-        }
     </script>
 </head>
-<body>
+<body onload="loadComments()">
     <header>
         <h1>Bienvenido a Boom Bet</h1>
         <h3>Casino Online 24hs.</h3>
@@ -149,16 +96,13 @@
     <section class="services">
         <h2>Nuestros Servicios</h2>
         <p>Disfruta de los mejores Slot, Blackjack, Roulette, Casino en vivo, Apuestas deportivas y mucho más.<br><br>
-
             Reglas para jugar en nuestra plataforma?<br>
             "NINGUNA"<br>
             Jugá sin restricciones!!<br><br>
-            
             Está todo permitido:<br>
             ✓ Sin límite de apuesta<br>
             ✓ Resguardo de fichas<br>
             ✓ Retiros ilimitados<br><br>
-        
             SISTEMA DE BANCA LIBRE.<br><br>
             Somos tu mejor opción!! 🤩
         </p>
@@ -194,10 +138,12 @@
         </div>
         <p id="userName"></p>
     </section>
-
+    <section class="some-comments">
+        <h2>Algunos de los comentarios</h2>
+        <div id="existingCommentsDisplay"></div>
+    </section>
     <footer>
         <p>&copy; 2024 Boom Bet. Todos los derechos reservados.</p>
     </footer>
 </body>
 </html>
-
