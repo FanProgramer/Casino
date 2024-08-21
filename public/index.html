@@ -6,11 +6,134 @@
     <title>Casino Online - BOOM BET</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    
+    <!-- Facebook SDK -->
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/es_ES/sdk.js"></script>
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Configuración de Supabase
+            const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8rFdyQ2t9Nsa553qBqCmYrOm7vQ';
+            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+            // Cargar SDK de Facebook e inicializar
+            window.fbAsyncInit = function() {
+                FB.init({
+                    appId: '499168329477257',
+                    cookie: true,
+                    xfbml: true,
+                    version: 'v17.0'
+                });
+
+                FB.AppEvents.logPageView();   
+            };
+
+            // Verificar estado de la sesión con Facebook
+            function checkLoginState() {
+                const accessToken = localStorage.getItem('fbAccessToken');
+                const userID = localStorage.getItem('fbUserID');
+
+                if (accessToken) {
+                    FB.getLoginStatus(function(response) {
+                        if (response.status === 'connected' && response.authResponse.userID === userID) {
+                            console.log('El usuario ya ha iniciado sesión.');
+                            FB.api('/me', { fields: 'name, email' }, function(response) {
+                                document.getElementById('userName').innerText = response.name;
+                                document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+                            });
+                        } else {
+                            console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
+                            localStorage.removeItem('fbAccessToken');
+                            localStorage.removeItem('fbUserID');
+                        }
+                    });
+                } else {
+                    console.log('El usuario no ha iniciado sesión.');
+                    document.getElementById('commentSection').style.display = 'none'; // Oculta la sección de comentarios
+                }
+                loadComments(); // Cargar comentarios sin necesidad de iniciar sesión
+            }
+
+            // Iniciar sesión con Facebook
+            function loginWithFacebook() {
+                FB.login(function(response) {
+                    if (response.authResponse) {
+                        const accessToken = response.authResponse.accessToken;
+                        const userID = response.authResponse.userID;
+
+                        // Guarda el token en el almacenamiento local
+                        localStorage.setItem('fbAccessToken', accessToken);
+                        localStorage.setItem('fbUserID', userID);
+
+                        FB.api('/me', { fields: 'name, email' }, function(response) {
+                            console.log('Bienvenido, ' + response.name + '.');
+                            document.getElementById('userName').innerText = response.name;
+                            document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+                        });
+                    } else {
+                        console.log('Usuario canceló el login o no autorizó.');
+                    }
+                }, {scope: 'public_profile,email'});
+            }
+
+            // Enviar comentario a Supabase
+            window.submitComment = async function() {
+                const comment = document.getElementById('userComment').value;
+                const userName = document.getElementById('userName').innerText;
+
+                if (comment) {
+                    try {
+                        const { data, error } = await supabase
+                            .from('comments')
+                            .insert([{ userName: userName, comment: comment }]);
+
+                        if (error) throw error;
+
+                        console.log('Comentario guardado en Supabase.');
+                        displayComments(); // Mostrar el comentario en la página
+                        document.getElementById('userComment').value = ''; // Limpiar el textarea
+                    } catch (error) {
+                        console.error('Error al guardar el comentario en Supabase: ', error.message);
+                    }
+                } else {
+                    alert('Por favor escribe un comentario antes de enviarlo.');
+                }
+            }
+
+            // Mostrar comentarios desde Supabase
+            async function displayComments() {
+                const commentsDisplay = document.getElementById('commentsDisplay');
+                commentsDisplay.innerHTML = ''; // Limpiar los comentarios actuales
+
+                try {
+                    const { data: comments, error } = await supabase
+                        .from('comments')
+                        .select('*');
+
+                    if (error) throw error;
+
+                    comments.forEach((comment) => {
+                        const commentDisplay = document.createElement('p');
+                        commentDisplay.innerText = comment.userName + ': ' + comment.comment;
+                        commentsDisplay.appendChild(commentDisplay);
+                    });
+                } catch (error) {
+                    console.error('Error al cargar los comentarios de Supabase: ', error.message);
+                }
+            }
+
+            // Cargar comentarios al cargar la página
+            function loadComments() {
+                displayComments(); // Cargar los comentarios cuando se carga la página
+            }
+
+            // Configuración del carrusel
             const slideContainer = document.querySelector('.carousel-slide');
             const slides = document.querySelectorAll('.carousel-slide img');
-    
             let counter = 0;
             const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
 
@@ -23,6 +146,9 @@
             }
 
             setInterval(moveSlide, 5000); // Cambia cada 5 segundos
+
+            // Verificar estado de la sesión con Facebook
+            checkLoginState();
         });
     </script>
 </head>
@@ -30,7 +156,7 @@
     <header>
         <h1>Bienvenido a Boom Bet</h1>
         <h3>Casino Online 24hs.</h3>
-        <p>Sitio de entretenimiento donde vas a poder apostar, ganar y retirar las veces que desees, Ya que contamos con un sistema de banca libre.</p>
+        <p>Sitio de entretenimiento donde vas a poder apostar, ganar y retirar las veces que desees, ya que contamos con un sistema de banca libre.</p>
         <img src="images/casino-banner.jpg" alt="Casino Banner">
     </header>
 
@@ -75,8 +201,17 @@
         <h2>Contáctanos</h2>
         <p>¿Interesado en empezar a ganar a lo grande? ¡Contáctanos!</p>
         <a href="https://wa.link/mw2adr" class="btn whatsapp">WhatsApp</a>
-        <a href="https://facebook.com/tu-pagina" class="btn facebook">Facebook</a>
+        <a href="https://facebook.com/tu-pagina" class="btn facebook" onclick="loginWithFacebook()">Facebook</a>
         <a href="https://www.instagram.com/casino_boombet4?utm_source=qr&igsh=dmR4NjBiamhvZ2dr" class="btn instagram">Instagram</a>
+
+        <!-- Sección de comentarios -->
+        <div id="commentSection" style="display:none;">
+            <h2>Comentarios</h2>
+            <p>¡Deja tu comentario!</p>
+            <textarea id="userComment" rows="4" cols="50" placeholder="Escribe tu comentario aquí..."></textarea><br>
+            <button onclick="submitComment()">Enviar Comentario</button>
+            <div id="commentsDisplay"></div>
+        </div>
     </section>
 
     <section class="share">
