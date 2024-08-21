@@ -6,6 +6,7 @@
     <title>Casino Online - BOOM BET</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
+    <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const slideContainer = document.querySelector('.carousel-slide');
@@ -23,64 +24,87 @@
             }
 
             setInterval(moveSlide, 5000); // Cambia cada 5 segundos
+
+            // Inicializa Supabase
+            const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co'; // Reemplaza con tu URL de Supabase
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8rFdyQ2t9Nsa553qBqCmYrOm7vQ'; // Reemplaza con tu clave de Supabase
+            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+            async function loadComments() {
+                const { data: comments, error } = await supabase
+                    .from('comments')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) {
+                    console.error('Error loading comments:', error);
+                } else {
+                    const commentsDisplay = document.getElementById('commentsDisplay');
+                    commentsDisplay.innerHTML = comments.map(comment => `<p>${comment.comment}</p>`).join('');
+                }
+            }
+
+            loadComments();
+
+            window.fbAsyncInit = function() {
+                FB.init({
+                    appId      : '499168329477257', // Reemplaza con tu ID de aplicación de Facebook
+                    cookie     : true,
+                    xfbml      : true,
+                    version    : 'v17.0' // Usa la versión más reciente del SDK
+                });
+
+                FB.getLoginStatus(function(response) {
+                    statusChangeCallback(response);
+                });
+            };
+
+            (function(d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) {return;}
+                js = d.createElement(s); js.id = id;
+                js.src = "https://connect.facebook.net/es_ES/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
+
+            function statusChangeCallback(response) {
+                if (response.status === 'connected') {
+                    // El usuario está logueado en Facebook y en tu aplicación
+                    document.getElementById('commentSection').style.display = 'block';
+                    document.getElementById('loginButton').style.display = 'none';
+                } else {
+                    // El usuario no está logueado
+                    document.getElementById('commentSection').style.display = 'none';
+                    document.getElementById('loginButton').style.display = 'block';
+                }
+            }
+
+            function loginWithFacebook() {
+                FB.login(function(response) {
+                    statusChangeCallback(response);
+                }, {scope: 'public_profile,email'});
+            }
+
+            async function submitComment() {
+                const userComment = document.getElementById('userComment').value;
+
+                if (userComment.trim() === '') {
+                    alert('Por favor, escribe un comentario.');
+                    return;
+                }
+
+                const { error } = await supabase
+                    .from('comments')
+                    .insert([{ comment: userComment }]);
+
+                if (error) {
+                    console.error('Error submitting comment:', error);
+                } else {
+                    document.getElementById('userComment').value = ''; // Limpiar el campo de comentario
+                    loadComments(); // Recargar los comentarios
+                }
+            }
         });
-
-        // Cargar el SDK de Facebook
-        window.fbAsyncInit = function() {
-            FB.init({
-                appId      : '499168329477257', // Reemplaza con tu ID de aplicación de Facebook
-                cookie     : true,
-                xfbml      : true,
-                version    : 'v17.0' // Usa la versión más reciente del SDK
-            });
-
-            FB.getLoginStatus(function(response) {
-                statusChangeCallback(response);
-            });
-        };
-
-        (function(d, s, id) {
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) {return;}
-            js = d.createElement(s); js.id = id;
-            js.src = "https://connect.facebook.net/es_ES/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
-
-        function statusChangeCallback(response) {
-            if (response.status === 'connected') {
-                // El usuario está logueado en Facebook y en tu aplicación
-                document.getElementById('commentSection').style.display = 'block';
-                document.getElementById('loginButton').style.display = 'none';
-            } else {
-                // El usuario no está logueado
-                document.getElementById('commentSection').style.display = 'none';
-                document.getElementById('loginButton').style.display = 'block';
-            }
-        }
-
-        function loginWithFacebook() {
-            FB.login(function(response) {
-                statusChangeCallback(response);
-            }, {scope: 'public_profile,email'});
-        }
-
-        function submitComment() {
-            const userComment = document.getElementById('userComment').value;
-            const commentsDisplay = document.getElementById('commentsDisplay');
-
-            if (userComment.trim() === '') {
-                alert('Por favor, escribe un comentario.');
-                return;
-            }
-
-            // Aquí se debería agregar el código para guardar el comentario en Supabase
-            // Por ejemplo:
-            // supabase.from('comments').insert([{ comment: userComment }]).then(...);
-
-            commentsDisplay.innerHTML += `<p>${userComment}</p>`;
-            document.getElementById('userComment').value = ''; // Limpiar el campo de comentario
-        }
     </script>
 </head>
 <body>
