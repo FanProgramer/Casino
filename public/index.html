@@ -7,31 +7,47 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    
-    <!-- Facebook SDK -->
-    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/es_ES/sdk.js"></script>
-    
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js"></script>
     <script>
-        // Configuración de Supabase
-        const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8rFdyQ2t9Nsa553qBqCmYrOm7vQ';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-        // Cargar SDK de Facebook e inicializar
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDkA3AKF_lAvyp_yWd_4fv-L7f1GL-kYZo",
+            authDomain: "casino-6de4f.firebaseapp.com",
+            databaseURL: "https://casino-6de4f-default-rtdb.firebaseio.com",
+            projectId: "casino-6de4f",
+            storageBucket: "casino-6de4f.appspot.com",
+            messagingSenderId: "46852261275",
+            appId: "1:46852261275:web:e1df4dde8f5eac24484d3e",
+        };
+        
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        
+        // Obtener una referencia a la base de datos
+        const database = firebase.database();
+    </script>
+    <script>
+        // Cargar el SDK de Facebook
         window.fbAsyncInit = function() {
             FB.init({
-                appId: '499168329477257',
-                cookie: true,
-                xfbml: true,
-                version: 'v17.0'
+                appId      : '499168329477257',  // Reemplaza con tu App ID
+                cookie     : true,
+                xfbml      : true,
+                version    : 'v17.0'
             });
-
-            FB.AppEvents.logPageView();   
+            FB.AppEvents.logPageView();
+            checkLoginState();  // Verificar el estado de la sesión al cargar la página
         };
 
-        // Verificar estado de la sesión con Facebook
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
         function checkLoginState() {
             const accessToken = localStorage.getItem('fbAccessToken');
             const userID = localStorage.getItem('fbUserID');
@@ -52,12 +68,9 @@
                 });
             } else {
                 console.log('El usuario no ha iniciado sesión.');
-                document.getElementById('commentSection').style.display = 'none'; // Oculta la sección de comentarios
             }
-            loadComments(); // Cargar comentarios sin necesidad de iniciar sesión
         }
 
-        // Iniciar sesión con Facebook
         function loginWithFacebook() {
             FB.login(function(response) {
                 if (response.authResponse) {
@@ -79,59 +92,43 @@
             }, {scope: 'public_profile,email'});
         }
 
-        // Enviar comentario a Supabase
-        async function submitComment() {
+        function submitComment() {
             const comment = document.getElementById('userComment').value;
             const userName = document.getElementById('userName').innerText;
-
+            
             if (comment) {
-                try {
-                    const { data, error } = await supabase
-                        .from('comments')
-                        .insert([{ userName: userName, comment: comment }]);
-
-                    if (error) throw error;
-
-                    console.log('Comentario guardado en Supabase.');
-                    displayComments(); // Mostrar el comentario en la página
-                    document.getElementById('userComment').value = ''; // Limpiar el textarea
-                } catch (error) {
-                    console.error('Error al guardar el comentario en Supabase: ', error.message);
-                }
+                // Guardar comentario en localStorage
+                let comments = JSON.parse(localStorage.getItem('comments')) || [];
+                comments.push({ userName: userName, comment: comment });
+                localStorage.setItem('comments', JSON.stringify(comments));
+                
+                // Muestra el comentario en la página
+                displayComments();
+                
+                // Limpia el textarea
+                document.getElementById('userComment').value = '';
             } else {
                 alert('Por favor escribe un comentario antes de enviarlo.');
             }
         }
 
-        // Mostrar comentarios desde Supabase
-        async function displayComments() {
+        function displayComments() {
             const commentsDisplay = document.getElementById('commentsDisplay');
-            commentsDisplay.innerHTML = ''; // Limpiar los comentarios actuales
-
-            try {
-                const { data: comments, error } = await supabase
-                    .from('comments')
-                    .select('*');
-
-                if (error) throw error;
-
-                comments.forEach((comment) => {
-                    const commentDisplay = document.createElement('p');
-                    commentDisplay.innerText = comment.userName + ': ' + comment.comment;
-                    commentsDisplay.appendChild(commentDisplay);
-                });
-            } catch (error) {
-                console.error('Error al cargar los comentarios de Supabase: ', error.message);
-            }
+            commentsDisplay.innerHTML = ''; // Limpia los comentarios actuales
+            let comments = JSON.parse(localStorage.getItem('comments')) || [];
+            comments.forEach(comment => {
+                const commentDisplay = document.createElement('p');
+                commentDisplay.innerText = comment.userName + ': ' + comment.comment;
+                commentsDisplay.appendChild(commentDisplay);
+            });
         }
 
-        // Cargar comentarios al cargar la página
         function loadComments() {
             displayComments(); // Cargar los comentarios cuando se carga la página
         }
     </script>
 </head>
-<body onload="checkLoginState()">
+<body>
     <header>
         <h1>Bienvenido a Boom Bet</h1>
         <h3>Casino Online 24hs.</h3>
@@ -179,9 +176,11 @@
     <section class="contact">
         <h2>Contáctanos</h2>
         <p>¿Interesado en empezar a ganar dinero con nosotros? ¡No dudes en contactarnos!</p>
-        <button onclick="loginWithFacebook()">Iniciar Sesión con Facebook</button>
+        <button onclick="loginWithFacebook()">Iniciar sesión con Facebook</button>
         <div id="commentSection" style="display: none;">
-            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea><br>
+            <h3>Deja tu comentario:</h3>
+            <textarea id="userComment" rows="4" cols="50" placeholder="Escribe tu comentario aquí..."></textarea>
+            <br>
             <button onclick="submitComment()">Enviar Comentario</button>
             <div id="commentsDisplay"></div>
         </div>
