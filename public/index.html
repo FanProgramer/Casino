@@ -7,121 +7,109 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Inicializar Supabase
-            const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8rFdyQ2t9Nsa553qBqCmYrOm7vQ';  // Reemplaza 'tu_anon_key_aqui' con tu Anon Key de Supabase
-            const supabase = createClient(supabaseUrl, supabaseKey);
+            const slideContainer = document.querySelector('.carousel-slide');
+            const slides = document.querySelectorAll('.carousel-slide img');
+    
+            let counter = 0;
+            const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
 
-            // Cargar el SDK de Facebook
-            window.fbAsyncInit = function() {
-                FB.init({
-                    appId      : '499168329477257', // Reemplaza con tu App ID
-                    cookie     : true,
-                    xfbml      : true,
-                    version    : 'v17.0'
-                });
-                FB.AppEvents.logPageView();   
-                checkLoginState();  // Verificar el estado de la sesión al cargar la página
-            };
-
-            // Asynchronous function to load the SDK of Facebook
-            (function(d, s, id) {
-                var js, fjs = d.getElementsByTagName(s)[0];
-                if (d.getElementById(id)) {return;}
-                js = d.createElement(s); js.id = id;
-                js.src = "https://connect.facebook.net/en_US/sdk.js";
-                fjs.parentNode.insertBefore(js, fjs);
-            }(document, 'script', 'facebook-jssdk'));
-
-            function checkLoginState() {
-                const accessToken = localStorage.getItem('fbAccessToken');
-                const userID = localStorage.getItem('fbUserID');
-
-                if (accessToken) {
-                    FB.getLoginStatus(function(response) {
-                        if (response.status === 'connected' && response.authResponse.userID === userID) {
-                            console.log('El usuario ya ha iniciado sesión.');
-                            FB.api('/me', { fields: 'name, email' }, function(response) {
-                                document.getElementById('userName').innerText = response.name;
-                                document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                                loadComments(); // Cargar comentarios de Supabase
-                            });
-                        } else {
-                            console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
-                            localStorage.removeItem('fbAccessToken');
-                            localStorage.removeItem('fbUserID');
-                        }
-                    });
-                } else {
-                    console.log('El usuario no ha iniciado sesión.');
+            function moveSlide() {
+                counter++;
+                if (counter >= slides.length / 4) {
+                    counter = 0; // Vuelve al inicio cuando llegue al final
                 }
+                slideContainer.style.transform = 'translateX(' + (-size * counter) + 'px)';
             }
 
-            function loginWithFacebook() {
-                FB.login(function(response) {
-                    if (response.authResponse) {
-                        const accessToken = response.authResponse.accessToken;
-                        const userID = response.authResponse.userID;
+            setInterval(moveSlide, 5000); // Cambia cada 5 segundos
+        });
 
-                        // Guarda el token en el almacenamiento local
-                        localStorage.setItem('fbAccessToken', accessToken);
-                        localStorage.setItem('fbUserID', userID);
+        // Verificar si el usuario ya ha iniciado sesión
+        function checkLoginState() {
+            const accessToken = localStorage.getItem('fbAccessToken');
+            const userID = localStorage.getItem('fbUserID');
 
+            if (accessToken) {
+                FB.getLoginStatus(function(response) {
+                    if (response.status === 'connected' && response.authResponse.userID === userID) {
+                        console.log('El usuario ya ha iniciado sesión.');
                         FB.api('/me', { fields: 'name, email' }, function(response) {
-                            console.log('Bienvenido, ' + response.name + '.');
                             document.getElementById('userName').innerText = response.name;
                             document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                            loadComments(); // Cargar comentarios de Supabase
                         });
                     } else {
-                        console.log('Usuario canceló el login o no autorizó.');
+                        console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
+                        localStorage.removeItem('fbAccessToken');
+                        localStorage.removeItem('fbUserID');
                     }
-                }, {scope: 'public_profile,email'});
+                });
+            } else {
+                console.log('El usuario no ha iniciado sesión.');
             }
+        }
 
-            async function submitComment() {
-                const comment = document.getElementById('userComment').value;
-                const userName = document.getElementById('userName').innerText;
+        // Facebook SDK
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId      : '499168329477257',  // Reemplaza con tu App ID
+                cookie     : true,
+                xfbml      : true,
+                version    : 'v17.0'
+            });
+            FB.AppEvents.logPageView();   
+            checkLoginState();  // Verificar el estado de la sesión al cargar la página
+        };
 
-                if (comment) {
-                    const { data, error } = await supabase
-                        .from('comments')
-                        .insert([{ user_name: userName, comment_text: comment }]);
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
 
-                    if (error) {
-                        console.error('Error al guardar el comentario:', error);
-                    } else {
-                        console.log('Comentario guardado con éxito:', data);
-                        document.getElementById('userComment').value = ''; // Limpiar el campo de comentario
-                        loadComments(); // Recargar los comentarios
-                    }
-                }
-            }
+        function loginWithFacebook() {
+            FB.login(function(response) {
+                if (response.authResponse) {
+                    const accessToken = response.authResponse.accessToken;
+                    const userID = response.authResponse.userID;
 
-            async function loadComments() {
-                const { data: comments, error } = await supabase
-                    .from('comments')
-                    .select('*');
+                    // Guarda el token en el almacenamiento local
+                    localStorage.setItem('fbAccessToken', accessToken);
+                    localStorage.setItem('fbUserID', userID);
 
-                if (error) {
-                    console.error('Error al cargar los comentarios:', error);
-                } else {
-                    const commentList = document.getElementById('commentsDisplay');
-                    commentList.innerHTML = ''; // Limpiar la lista de comentarios
-                    comments.forEach(comment => {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = `${comment.user_name}: ${comment.comment_text}`;
-                        commentList.appendChild(listItem);
+                    FB.api('/me', { fields: 'name, email' }, function(response) {
+                        console.log('Bienvenido, ' + response.name + '.');
+                        document.getElementById('userName').innerText = response.name;
+                        document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
                     });
+                } else {
+                    console.log('Usuario canceló el login o no autorizó.');
                 }
+            }, {scope: 'public_profile,email'});
+        }
+
+        function submitComment() {
+            const comment = document.getElementById('userComment').value;
+            const userName = document.getElementById('userName').innerText;
+            
+            if (comment) {
+                // Aquí podrías enviar el comentario a tu servidor o almacenarlo
+                alert('Gracias por tu comentario, ' + userName + '!');
+
+                // Opcional: Muestra el comentario en la página
+                const commentDisplay = document.createElement('p');
+                commentDisplay.innerText = userName + ': ' + comment;
+                document.getElementById('commentsDisplay').appendChild(commentDisplay);
+                
+                // Limpia el textarea
+                document.getElementById('userComment').value = '';
+            } else {
+                alert('Por favor escribe un comentario antes de enviarlo.');
             }
-
-            document.getElementById('facebook-login-btn').onclick = loginWithFacebook;
-
-        });
+        }
     </script>
 </head>
 <body>
@@ -184,20 +172,21 @@
     </section>
 
     <!-- Sección de inicio de sesión y comentarios -->
-    <section class="comments-section">
-        <h2>Comentarios de Usuarios</h2>
-        <div id="fb-root"></div>
-        <button onclick="loginWithFacebook()" class="btn facebook">Iniciar sesión con Facebook</button>
-        <p id="userName"></p>
-        <div id="commentSection" style="display:none;">
-            <textarea id="userComment" placeholder="Deja tu comentario aquí"></textarea>
-            <button onclick="submitComment()" class="btn submit-comment">Enviar Comentario</button>
-            <div id="commentsDisplay"></div>
+    <section class="comments">
+        <h2>Deja tu comentario</h2>
+        <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
+        <div id="commentSection" style="display: none;">
+            <p>Escribe tu reseña, <span id="userName"></span>:</p>
+            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
+            <button onclick="submitComment()">Enviar</button>
+        </div>
+        <div id="commentsDisplay">
+            <!-- Aquí se mostrarán los comentarios -->
         </div>
     </section>
 
     <footer>
-        <p>© 2023 Boom Bet. Todos los derechos reservados.</p>
+        <p>&copy; 2024 BOOM BET. Todos los derechos reservados.</p>
     </footer>
 </body>
 </html>
