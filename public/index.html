@@ -8,10 +8,15 @@
     <link rel="stylesheet" href="css/styles.css">
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script>
+        // Inicializa Supabase globalmente
+        const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co'; // Reemplaza con tu URL de Supabase
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3lmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8rFdyQ2t9Nsa553qBqCmYrOm7vQ'; // Reemplaza con tu clave de Supabase
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
         document.addEventListener('DOMContentLoaded', function() {
             const slideContainer = document.querySelector('.carousel-slide');
             const slides = document.querySelectorAll('.carousel-slide img');
-    
+
             let counter = 0;
             const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
 
@@ -24,11 +29,6 @@
             }
 
             setInterval(moveSlide, 5000); // Cambia cada 5 segundos
-
-            // Inicializa Supabase
-            const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co'; // Reemplaza con tu URL de Supabase
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJmeXh0Y2V6dWVocHRldXhob3ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjQxOTc2NzQsImV4cCI6MjAzOTc3MzY3NH0.7zeCHD1PBMMntyKM8rFdyQ2t9Nsa553qBqCmYrOm7vQ'; // Reemplaza con tu clave de Supabase
-            const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
             async function loadComments() {
                 const { data: comments, error } = await supabase
@@ -104,6 +104,10 @@
                     loadComments(); // Recargar los comentarios
                 }
             }
+
+            // Asigna la función a los eventos de los botones
+            document.getElementById('loginButton').addEventListener('click', loginWithFacebook);
+            document.getElementById('submitCommentButton').addEventListener('click', submitComment);
         });
     </script>
 </head>
@@ -111,7 +115,7 @@
     <header>
         <h1>Bienvenido a Boom Bet</h1>
         <h3>Casino Online 24hs.</h3>
-        <p>Sitio de entretenimiento donde vas a poder apostar, ganar y retirar las veces que desees, Ya que contamos con un sistema de banca libre.</p>
+        <p>Sitio de entretenimiento donde vas a poder apostar, ganar y retirar las veces que desees, ya que contamos con un sistema de banca libre.</p>
         <img src="images/casino-banner.jpg" alt="Casino Banner">
     </header>
 
@@ -129,7 +133,7 @@
             ✓ Retiros ilimitados<br><br>
         
             SISTEMA DE BANCA LIBRE.<br><br>
-            Somos tu mejor opción!! 🤩
+            ¡Somos tu mejor opción! 🤩
         </p>
         <a href="https://Bet91.club" class="btn" style="background-color: #ffcc00; color: #000;">Ir al Casino</a>
     </section>
@@ -171,10 +175,10 @@
             <h2>Comentarios</h2>
             <p>¡Deja tu comentario!</p>
             <textarea id="userComment" rows="4" cols="50" placeholder="Escribe tu comentario aquí..."></textarea><br>
-            <button onclick="submitComment()">Enviar Comentario</button>
+            <button id="submitCommentButton">Enviar Comentario</button>
             <div id="commentsDisplay"></div>
         </div>
-        <button id="loginButton" class="btn facebook" onclick="loginWithFacebook()">Iniciar Sesión con Facebook</button>
+        <button id="loginButton" class="btn facebook">Iniciar Sesión con Facebook</button>
     </section>
 
     <footer>
