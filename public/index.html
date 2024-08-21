@@ -7,7 +7,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    
     <script>
+        // Inicializar Supabase
+        const supabaseUrl = 'https://bfyxtcezuehpteuxhoym.supabase.co';
+        const supabaseKey = process.env.SUPABASE_KEY
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
         document.addEventListener('DOMContentLoaded', function() {
             const slideContainer = document.querySelector('.carousel-slide');
             const slides = document.querySelectorAll('.carousel-slide img');
@@ -38,6 +45,7 @@
                         FB.api('/me', { fields: 'name, email' }, function(response) {
                             document.getElementById('userName').innerText = response.name;
                             document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+                            loadComments(); // Cargar comentarios de Supabase
                         });
                     } else {
                         console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
@@ -84,6 +92,7 @@
                         console.log('Bienvenido, ' + response.name + '.');
                         document.getElementById('userName').innerText = response.name;
                         document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
+                        loadComments(); // Cargar comentarios de Supabase
                     });
                 } else {
                     console.log('Usuario canceló el login o no autorizó.');
@@ -91,24 +100,48 @@
             }, {scope: 'public_profile,email'});
         }
 
-        function submitComment() {
+        async function submitComment() {
             const comment = document.getElementById('userComment').value;
             const userName = document.getElementById('userName').innerText;
             
             if (comment) {
-                // Aquí podrías enviar el comentario a tu servidor o almacenarlo
-                alert('Gracias por tu comentario, ' + userName + '!');
-
-                // Opcional: Muestra el comentario en la página
-                const commentDisplay = document.createElement('p');
-                commentDisplay.innerText = userName + ': ' + comment;
-                document.getElementById('commentsDisplay').appendChild(commentDisplay);
+                const { data, error } = await supabase
+                    .from('comments')
+                    .insert([{ name: userName, comment }]);
                 
-                // Limpia el textarea
-                document.getElementById('userComment').value = '';
+                if (error) {
+                    alert('Hubo un error al enviar tu comentario.');
+                    console.error(error);
+                } else {
+                    alert('Gracias por tu comentario, ' + userName + '!');
+                    displayComment(userName, comment);
+                    document.getElementById('userComment').value = ''; // Limpiar textarea
+                }
             } else {
                 alert('Por favor escribe un comentario antes de enviarlo.');
             }
+        }
+
+        function displayComment(name, comment) {
+            const commentDisplay = document.createElement('p');
+            commentDisplay.innerText = name + ': ' + comment;
+            document.getElementById('commentsDisplay').appendChild(commentDisplay);
+        }
+
+        async function loadComments() {
+            const { data: comments, error } = await supabase
+                .from('comments')
+                .select('*')
+                .order('id', { ascending: true });
+
+            if (error) {
+                console.error('Error al cargar comentarios:', error);
+                return;
+            }
+
+            comments.forEach(({ name, comment }) => {
+                displayComment(name, comment);
+            });
         }
     </script>
 </head>
@@ -172,21 +205,20 @@
     </section>
 
     <!-- Sección de inicio de sesión y comentarios -->
-    <section class="comments">
-        <h2>Deja tu comentario</h2>
-        <button onclick="loginWithFacebook()">Inicia sesión con Facebook</button>
-        <div id="commentSection" style="display: none;">
-            <p>Escribe tu reseña, <span id="userName"></span>:</p>
-            <textarea id="userComment" placeholder="Escribe tu comentario aquí..."></textarea>
-            <button onclick="submitComment()">Enviar</button>
-        </div>
-        <div id="commentsDisplay">
-            <!-- Aquí se mostrarán los comentarios -->
+    <section class="comments-section">
+        <h2>Comentarios de Usuarios</h2>
+        <div id="fb-root"></div>
+        <button onclick="loginWithFacebook()" class="btn facebook">Iniciar sesión con Facebook</button>
+        <p id="userName"></p>
+        <div id="commentSection" style="display:none;">
+            <textarea id="userComment" placeholder="Deja tu comentario aquí"></textarea>
+            <button onclick="submitComment()" class="btn submit-comment">Enviar Comentario</button>
+            <div id="commentsDisplay"></div>
         </div>
     </section>
 
     <footer>
-        <p>&copy; 2024 BOOM BET. Todos los derechos reservados.</p>
+        <p>© 2023 Boom Bet. Todos los derechos reservados.</p>
     </footer>
 </body>
 </html>
