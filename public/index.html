@@ -51,9 +51,11 @@
             if (response.status === 'connected') {
                 // El usuario está logueado en Facebook y en tu aplicación
                 document.getElementById('commentSection').style.display = 'block';
+                document.getElementById('loginButton').style.display = 'none';
             } else {
                 // El usuario no está logueado
                 document.getElementById('commentSection').style.display = 'none';
+                document.getElementById('loginButton').style.display = 'block';
             }
         }
 
@@ -129,12 +131,18 @@
     <section class="contact">
         <h2>Contáctanos</h2>
         <p>¿Interesado en empezar a ganar a lo grande? ¡Contáctanos!</p>
-        <button class="btn facebook" onclick="loginWithFacebook()">Iniciar Sesión con Facebook</button>
         <a href="https://wa.link/mw2adr" class="btn whatsapp">WhatsApp</a>
         <a href="https://facebook.com/tu-pagina" class="btn facebook">Facebook</a>
         <a href="https://www.instagram.com/casino_boombet4?utm_source=qr&igsh=dmR4NjBiamhvZ2dr" class="btn instagram">Instagram</a>
+    </section>
 
-        <!-- Sección de comentarios -->
+    <section class="share">
+        <h2>Comparte Nuestra Página</h2>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://tu-pagina.com" class="btn facebook">Compartir en Facebook</a>
+        <a href="https://twitter.com/intent/tweet?url=https://tu-pagina.com&text=Echa%20un%20vistazo%20a%20este%20casino%20online!" class="btn twitter">Compartir en Twitter</a>
+    </section>
+
+    <section class="comment-section">
         <div id="commentSection" style="display:none;">
             <h2>Comentarios</h2>
             <p>¡Deja tu comentario!</p>
@@ -142,12 +150,7 @@
             <button onclick="submitComment()">Enviar Comentario</button>
             <div id="commentsDisplay"></div>
         </div>
-    </section>
-
-    <section class="share">
-        <h2>Comparte Nuestra Página</h2>
-        <a href="https://www.facebook.com/sharer/sharer.php?u=https://tu-pagina.com" class="btn facebook">Compartir en Facebook</a>
-        <a href="https://twitter.com/intent/tweet?url=https://tu-pagina.com&text=Echa%20un%20vistazo%20a%20este%20casino%20online!" class="btn twitter">Compartir en Twitter</a>
+        <button id="loginButton" class="btn facebook" onclick="loginWithFacebook()">Iniciar Sesión con Facebook</button>
     </section>
 
     <footer>
