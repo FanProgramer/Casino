@@ -6,133 +6,31 @@
     <title>Casino Online - BOOM BET</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
-
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js"></script>
     <script>
-        // Configuración de Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyDkA3AKF_lAvyp_yWd_4fv-L7f1GL-kYZo",
-            authDomain: "casino-6de4f.firebaseapp.com",
-            databaseURL: "https://casino-6de4f-default-rtdb.firebaseio.com",
-            projectId: "casino-6de4f",
-            storageBucket: "casino-6de4f.appspot.com",
-            messagingSenderId: "46852261275",
-            appId: "1:46852261275:web:e1df4dde8f5eac24484d3e",
-        };
-        
-        // Inicializar Firebase
-        firebase.initializeApp(firebaseConfig);
-        
-        // Obtener una referencia a la base de datos
-        const database = firebase.database();
-    </script>
-    <script>
-        // Cargar el SDK de Facebook
-        window.fbAsyncInit = function() {
-            FB.init({
-                appId      : '499168329477257',  // Reemplaza con tu App ID
-                cookie     : true,
-                xfbml      : true,
-                version    : 'v17.0'
-            });
-            FB.AppEvents.logPageView();
-            checkLoginState();  // Verificar el estado de la sesión al cargar la página
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            const slideContainer = document.querySelector('.carousel-slide');
+            const slides = document.querySelectorAll('.carousel-slide img');
+    
+            let counter = 0;
+            const size = slides[0].clientWidth * 4; // Tamaño de un grupo de 4 imágenes
 
-        (function(d, s, id){
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) {return;}
-            js = d.createElement(s); js.id = id;
-            js.src = "https://connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
-
-        function checkLoginState() {
-            const accessToken = localStorage.getItem('fbAccessToken');
-            const userID = localStorage.getItem('fbUserID');
-
-            if (accessToken) {
-                FB.getLoginStatus(function(response) {
-                    if (response.status === 'connected' && response.authResponse.userID === userID) {
-                        console.log('El usuario ya ha iniciado sesión.');
-                        FB.api('/me', { fields: 'name, email' }, function(response) {
-                            document.getElementById('userName').innerText = response.name;
-                            document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                        });
-                    } else {
-                        console.log('El token no es válido. Requiere iniciar sesión nuevamente.');
-                        localStorage.removeItem('fbAccessToken');
-                        localStorage.removeItem('fbUserID');
-                    }
-                });
-            } else {
-                console.log('El usuario no ha iniciado sesión.');
-            }
-        }
-
-        function loginWithFacebook() {
-            FB.login(function(response) {
-                if (response.authResponse) {
-                    const accessToken = response.authResponse.accessToken;
-                    const userID = response.authResponse.userID;
-
-                    // Guarda el token en el almacenamiento local
-                    localStorage.setItem('fbAccessToken', accessToken);
-                    localStorage.setItem('fbUserID', userID);
-
-                    FB.api('/me', { fields: 'name, email' }, function(response) {
-                        console.log('Bienvenido, ' + response.name + '.');
-                        document.getElementById('userName').innerText = response.name;
-                        document.getElementById('commentSection').style.display = 'block'; // Muestra la sección de comentarios
-                    });
-                } else {
-                    console.log('Usuario canceló el login o no autorizó.');
+            function moveSlide() {
+                counter++;
+                if (counter >= slides.length / 4) {
+                    counter = 0; // Vuelve al inicio cuando llegue al final
                 }
-            }, {scope: 'public_profile,email'});
-        }
-
-        function submitComment() {
-            const comment = document.getElementById('userComment').value;
-            const userName = document.getElementById('userName').innerText;
-            
-            if (comment) {
-                // Guardar comentario en localStorage
-                let comments = JSON.parse(localStorage.getItem('comments')) || [];
-                comments.push({ userName: userName, comment: comment });
-                localStorage.setItem('comments', JSON.stringify(comments));
-                
-                // Muestra el comentario en la página
-                displayComments();
-                
-                // Limpia el textarea
-                document.getElementById('userComment').value = '';
-            } else {
-                alert('Por favor escribe un comentario antes de enviarlo.');
+                slideContainer.style.transform = 'translateX(' + (-size * counter) + 'px)';
             }
-        }
 
-        function displayComments() {
-            const commentsDisplay = document.getElementById('commentsDisplay');
-            commentsDisplay.innerHTML = ''; // Limpia los comentarios actuales
-            let comments = JSON.parse(localStorage.getItem('comments')) || [];
-            comments.forEach(comment => {
-                const commentDisplay = document.createElement('p');
-                commentDisplay.innerText = comment.userName + ': ' + comment.comment;
-                commentsDisplay.appendChild(commentDisplay);
-            });
-        }
-
-        function loadComments() {
-            displayComments(); // Cargar los comentarios cuando se carga la página
-        }
+            setInterval(moveSlide, 5000); // Cambia cada 5 segundos
+        });
     </script>
 </head>
 <body>
     <header>
         <h1>Bienvenido a Boom Bet</h1>
         <h3>Casino Online 24hs.</h3>
-        <p>Sitio de entretenimiento donde vas a poder apostar, ganar y retirar las veces que desees, ya que contamos con un sistema de banca libre.</p>
+        <p>Sitio de entretenimiento donde vas a poder apostar, ganar y retirar las veces que desees, Ya que contamos con un sistema de banca libre.</p>
         <img src="images/casino-banner.jpg" alt="Casino Banner">
     </header>
 
@@ -175,20 +73,20 @@
 
     <section class="contact">
         <h2>Contáctanos</h2>
-        <p>¿Interesado en empezar a ganar dinero con nosotros? ¡No dudes en contactarnos!</p>
-        <button onclick="loginWithFacebook()">Iniciar sesión con Facebook</button>
-        <div id="commentSection" style="display: none;">
-            <h3>Deja tu comentario:</h3>
-            <textarea id="userComment" rows="4" cols="50" placeholder="Escribe tu comentario aquí..."></textarea>
-            <br>
-            <button onclick="submitComment()">Enviar Comentario</button>
-            <div id="commentsDisplay"></div>
-        </div>
-        <p id="userName"></p>
+        <p>¿Interesado en empezar a ganar a lo grande? ¡Contáctanos!</p>
+        <a href="https://wa.link/mw2adr" class="btn whatsapp">WhatsApp</a>
+        <a href="https://facebook.com/tu-pagina" class="btn facebook">Facebook</a>
+        <a href="https://www.instagram.com/casino_boombet4?utm_source=qr&igsh=dmR4NjBiamhvZ2dr" class="btn instagram">Instagram</a>
+    </section>
+
+    <section class="share">
+        <h2>Comparte Nuestra Página</h2>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://tu-pagina.com" class="btn facebook">Compartir en Facebook</a>
+        <a href="https://twitter.com/intent/tweet?url=https://tu-pagina.com&text=Echa%20un%20vistazo%20a%20este%20casino%20online!" class="btn twitter">Compartir en Twitter</a>
     </section>
 
     <footer>
-        <p>&copy; 2024 Boom Bet. Todos los derechos reservados.</p>
+        <p>&copy; 2024 BOOM BET. Todos los derechos reservados.</p>
     </footer>
 </body>
 </html>
